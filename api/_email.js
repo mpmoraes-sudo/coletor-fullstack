@@ -1,17 +1,18 @@
-import { Resend } from "resend";
+import sgMail from "@sendgrid/mail";
 
-export async function sendCodeEmail({ to, code, expiresAt }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.SENDER_EMAIL || "no-reply@example.com";
-  const subject = "Seu código de verificação";
-  const html = `<p>Seu código é <b>${code}</b>.</p><p>Ele expira às <b>${new Date(expiresAt).toLocaleTimeString("pt-BR")}</b>.</p>`;
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-  if (!apiKey) {
-    console.log("[EMAIL MOCK] Enviaria para", to, "assunto:", subject, "html:", html);
-    return { success: true, mock: true };
+export async function enviarEmail(destinatario, assunto, mensagem) {
+  try {
+    const msg = {
+      to: destinatario,
+      from: process.env.SENDER_EMAIL,
+      subject: assunto,
+      text: mensagem,
+    };
+    await sgMail.send(msg);
+    console.log("Email enviado com sucesso para", destinatario);
+  } catch (err) {
+    console.error("Erro ao enviar e-mail:", err.response?.body || err);
   }
-  const resend = new Resend(apiKey);
-  const { error } = await resend.emails.send({ from, to, subject, html });
-  if (error) throw error;
-  return { success: true };
 }
