@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - Etapa 1</title>
+  <link rel="stylesheet" href="cadastros.css">
+  <script defer src="cadastro1.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Cadastro</h1>
+    <label for="email">Insira seu e-mail para continuar</label>
+    <form id="emailForm">
+      <input type="email" id="email" placeholder="Digite seu e-mail" required>
+      <button type="submit">Enviar código</button>
+    </form>
+    <p class="mensagemDeRetorno" id="mensagemDeRetorno"></p>
+    <div id="verificationSection" style="display: none;">
+      <label for="campoParaInserirOCodigo">Digite o código recebido</label>
+      <form>
+        <input type="text" id="campoParaInserirOCodigo" required>
+        <button id="verificarCodigo" type="button">Validar e-mail</button>
+      </form>
+      <p id="verificationMessage"></p>
+    </div>
+  </div>
+</body>
+</html>
