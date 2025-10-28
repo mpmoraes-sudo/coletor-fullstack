@@ -1,39 +1,31 @@
 import { enviarEmail } from "./_email.js";
-import { MongoClient } from "mongodb";
-
-const uri = process.env.MONGODB_URI;
-const dbName = process.env.DB_NAME;
+import { getDb } from "./_db.js";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Método não permitido" });
-  }
-
-  const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({ error: "E-mail é obrigatório" });
-  }
+  if (req.method !== "POST") return res.status(405).json({ error: "Método não permitido" });
 
   try {
-    // Conecta ao banco
-    const client = await MongoClient.connect(uri);
-    const db = client.db(dbName);
-    const colecaoCodigos = db.collection("CodigosDeCadastro");
+    const { email } = req.body || {};
+    if (!email) return res.status(400).json({ error: "E-mail é obrigatório" });
 
-    // Gera código e define validade (10 minutos)
-    const codigoCadastro = Math.floor(10000 + Math.random() * 90000).toString();
+    const db = await getDb();
+    const tokens = db.collection("ColecaoDeTokensTemporarios");
+    const users = db.collection("ColecaoDeUsuarios");
+
+    // verifica se já existe
+    const existe = await users.findOne({ email });
+    if (existe) return res.status(409).json({ error: "E-mail já cadastrado" });
+
+    const codigoCadastro = Math.floor(10000 + Math.random() * 90000);
     const expiracao = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Salva código temporário
-    await colecaoCodigos.insertOne({
+    await tokens.insertOne({
       email,
-      codigo: codigoCadastro,
-      expiracao,
-      jaCadastrado: false
+      codigoDoCliente: codigoCadastro,
+      DataEHoraExpiracao: expiracao,
+      tokenUsado: false
     });
 
-    // Monta mensagem HTML
     const mensagemHTML = `
       <p>Seu código de confirmação de e-mail é:</p>
       <h2 style="color:#2b6cb0">${codigoCadastro}</h2>
@@ -42,24 +34,12 @@ export default async function handler(req, res) {
       <p><em>Ferramenta para Gestão de Templates Digitais</em></p>
     `;
 
-    // Envia e-mail via SendGrid
-    const envio = await enviarEmail(
-      email,
-      "Código de verificação - Ferramenta de Templates",
-      mensagemHTML
-    );
+    const envio = await enviarEmail(email, "Código de verificação", mensagemHTML);
+    if (!envio.success) return res.status(500).json({ error: "Erro ao enviar e-mail" });
 
-    await client.close();
-
-    if (!envio.success) {
-      console.error("Erro ao enviar o e-mail:", envio.error);
-      return res.status(500).json({ error: "Erro ao enviar e-mail" });
-    }
-
-    console.log("✅ E-mail de verificação enviado com sucesso para", email);
-    return res.status(200).json({ success: true, email });
-  } catch (erro) {
-    console.error("Erro geral em signup_start:", erro);
+    return res.json({ success: true, message: "Código enviado com sucesso" });
+  } catch (err) {
+    console.error("Erro geral em signup_start:", err);
     return res.status(500).json({ error: "Erro interno do servidor" });
   }
 }
