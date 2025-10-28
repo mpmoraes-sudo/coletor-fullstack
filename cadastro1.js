@@ -4,7 +4,7 @@ document.getElementById("emailForm").addEventListener("submit", async (event) =>
   const msg = document.getElementById("mensagemDeRetorno");
   if (!email) { msg.textContent = "Por favor, insira um e-mail válido."; return; }
   try {
-    const r = await fetch("/api/signup/start", {
+    const r = await fetch("/api/signup/start.js", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })
@@ -41,7 +41,7 @@ document.getElementById("verificarCodigo").addEventListener("click", async () =>
   const code = document.getElementById("campoParaInserirOCodigo").value.trim();
   const out = document.getElementById("verificationMessage");
   try {
-    const r = await fetch("/api/signup/verify", {
+    const r = await fetch("/api/signup/verify.js", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, code })
