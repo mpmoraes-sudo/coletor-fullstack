@@ -4,7 +4,7 @@ document.getElementById("emailForm").addEventListener("submit", async (event) =>
   const msg = document.getElementById("mensagemDeRetorno");
   if (!email) { msg.textContent = "Por favor, insira um e-mail válido."; return; }
   try {
-    const r = await fetch("/api/signup/start", {
+    const r = await fetch("/api/signup_start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })
