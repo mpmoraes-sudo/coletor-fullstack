@@ -1,0 +1,10 @@
+{
+  "name": "coletor-fullstack",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "mongodb": "^6.3.0",
+    "node-fetch": "^3.3.2",
+    "bcryptjs": "^2.4.3"
+  }
+}
