@@ -1,0 +1,106 @@
+/* ===== RESET & BASE ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #eef2f3, #dfe9f3);
+  color: #333;
+}
+
+/* ===== CONTAINER ===== */
+.login-container {
+  width: 100%;
+  max-width: 340px;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: all 0.3s ease-in-out;
+}
+
+.login-container:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== TÍTULO ===== */
+.login-container h2 {
+  margin-bottom: 1.5rem;
+  color: #2e6eb5;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+/* ===== FORMULÁRIO ===== */
+.login-container form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 10px 12px;
+  margin: 8px 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.login-container input:focus {
+  border-color: #2e6eb5;
+  outline: none;
+  box-shadow: 0 0 4px rgba(46, 110, 181, 0.4);
+}
+
+/* ===== BOTÃO ===== */
+.login-container button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  background-color: #2e6eb5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.login-container button:hover {
+  background-color: #245e9d;
+  transform: scale(1.02);
+}
+
+/* ===== LINKS AUXILIARES ===== */
+.links-auxiliares {
+  margin-top: 1rem;
+}
+
+.links-auxiliares a {
+  display: inline-block;
+  margin: 4px 8px;
+  color: #2e6eb5;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.links-auxiliares a:hover {
+  text-decoration: underline;
+}
+
+/* ===== MENSAGEM DE RESPOSTA ===== */
+#respostaAoUsuario {
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
