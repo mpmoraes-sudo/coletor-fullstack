@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - Etapa 1</title>
+  <link rel="stylesheet" href="cadastros.css">
+  <script defer src="cadastro1.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Cadastro</h1>
+    <p>Insira seu e-mail para iniciar o cadastro e receber o código de verificação.</p>
+
+    <form id="emailForm">
+      <input type="email" id="email" placeholder="Digite seu e-mail" required>
+      <button type="submit">Enviar código</button>
+    </form>
+
+    <p id="mensagemDeRetorno" class="mensagemDeRetorno"></p>
+
+    <!-- Campo de verificação -->
+    <div id="verificationSection" style="display: none;">
+      <label for="campoParaInserirOCodigo">Digite o código recebido no e-mail</label>
+      <form id="verifyForm">
+        <input type="text" id="campoParaInserirOCodigo" placeholder="Código de 5 dígitos" required>
+        <button type="submit" id="verificarCodigo">Validar e-mail</button>
+      </form>
+      <p id="verificationMessage"></p>
+    </div>
+  </div>
+</body>
+</html>
