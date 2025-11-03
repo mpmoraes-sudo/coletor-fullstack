@@ -9,25 +9,30 @@
 </head>
 
 <body>
-  <div class="container">
-    <h1>Cadastro</h1>
-    <p>Insira seu e-mail para iniciar o cadastro e receber o código de verificação.</p>
+  <div class="login-container">
+    <h2>Cadastro</h2>
+    <p style="font-size: 0.95rem; color: #555; margin-bottom: 1rem;">
+      Insira seu e-mail para receber o código de verificação.
+    </p>
 
+    <!-- Formulário de envio de e-mail -->
     <form id="emailForm">
       <input type="email" id="email" placeholder="Digite seu e-mail" required>
       <button type="submit">Enviar código</button>
     </form>
 
-    <p id="mensagemDeRetorno" class="mensagemDeRetorno"></p>
+    <p id="mensagemDeRetorno" style="margin-top: 10px;"></p>
 
-    <!-- Campo de verificação -->
-    <div id="verificationSection" style="display: none;">
-      <label for="campoParaInserirOCodigo">Digite o código recebido no e-mail</label>
+    <!-- Campo de verificação (aparece depois) -->
+    <div id="verificationSection" style="display: none; margin-top: 1.5rem;">
+      <label for="campoParaInserirOCodigo" style="display:block; margin-bottom: 8px; color:#333;">
+        Digite o código recebido no e-mail:
+      </label>
       <form id="verifyForm">
         <input type="text" id="campoParaInserirOCodigo" placeholder="Código de 5 dígitos" required>
         <button type="submit" id="verificarCodigo">Validar e-mail</button>
       </form>
-      <p id="verificationMessage"></p>
+      <p id="verificationMessage" style="margin-top: 10px;"></p>
     </div>
   </div>
 </body>
