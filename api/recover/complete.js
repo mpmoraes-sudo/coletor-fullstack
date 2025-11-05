@@ -5,44 +5,54 @@ export default async function handler(req, res) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "Método não permitido" });
 
-  const { tokenRecuperacao, senha } = req.body || {};
-  if (!tokenRecuperacao || !senha)
-    return res.status(400).json({ error: "Token e senha são obrigatórios." });
+  const { tokenRecuperacao, senha, dataNascimento } = req.body || {};
+  if (!tokenRecuperacao || !senha || !dataNascimento)
+    return res.status(400).json({ error: "Token, senha e data de nascimento são obrigatórios." });
 
   try {
     const db = await getDb();
     const tokens = db.collection("ColecaoDeTokensTemporarios");
     const users = db.collection("ColecaoDeUsuarios");
 
-    // 1️⃣ busca o token de recuperação
+    // 1️⃣ localiza o token ativo
     const token = await tokens.findOne({ tokenRecuperacao });
-
     if (!token)
       return res.status(400).json({ error: "Token inválido." });
+
     if (token.tokenUsado)
       return res.status(400).json({ error: "Token já utilizado." });
+
     if (new Date(token.DataEHoraExpiracao) < new Date())
       return res.status(400).json({ error: "Token expirado." });
 
     const email = token.email;
 
-    // 2️⃣ criptografa a nova senha
-    const senhaCriptografada = await bcrypt.hash(senha, 10);
+    // 2️⃣ localiza o usuário vinculado ao token
+    const usuario = await users.findOne({ email });
+    if (!usuario)
+      return res.status(404).json({ error: "Usuário não encontrado." });
 
-    // 3️⃣ atualiza a senha do usuário correto
-    const result = await users.updateOne(
+    // 3️⃣ verifica data de nascimento (formato ISO yyyy-mm-dd)
+    const dataBanco = new Date(usuario.dataNascimento).toISOString().split("T")[0];
+    const dataInformada = new Date(dataNascimento).toISOString().split("T")[0];
+
+    if (dataBanco !== dataInformada)
+      return res.status(403).json({ error: "Data de nascimento incorreta." });
+
+    // 4️⃣ criptografa a nova senha e atualiza
+    const senhaCriptografada = await bcrypt.hash(senha, 10);
+    await users.updateOne(
       { email },
       { $set: { senha: senhaCriptografada, atualizadoEm: new Date() } }
     );
 
-    if (result.matchedCount === 0)
-      return res.status(404).json({ error: "Usuário não encontrado." });
+    // 5️⃣ invalida o token
+    await tokens.updateOne(
+      { _id: token._id },
+      { $set: { tokenUsado: true, tokenAtivo: false } }
+    );
 
-    // 4️⃣ invalida o token de recuperação
-    await tokens.updateOne({ _id: token._id }, { $set: { tokenUsado: true } });
-    //Comunica nova senha
     console.log("🔐 Senha redefinida para:", email);
-    
     return res.json({ success: true });
   } catch (err) {
     console.error("Erro em recover/complete:", err);
