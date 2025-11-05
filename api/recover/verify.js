@@ -24,9 +24,12 @@ export default async function handler(req, res) {
     if (new Date(token.DataEHoraExpiracao) < new Date())
       return res.status(400).json({ error: "Código expirado" });
 
-    await tokens.updateOne({ _id: token._id }, { $set: { tokenUsado: true } });
+    // ⚠️ não marca o token como usado ainda
+    return res.json({
+      success: true,
+      tokenRecuperacao: token.tokenRecuperacao
+    });
 
-    return res.json({ success: true, tokenRecuperacao: token.tokenRecuperacao});
   } catch (err) {
     console.error("Erro em recover/verify:", err);
     return res.status(500).json({ error: "Erro interno do servidor" });
