@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 
     await tokens.updateOne({ _id: token._id }, { $set: { tokenUsado: true } });
 
-    return res.json({ success: true });
+    return res.json({ success: true, tokenRecuperacao: token.tokenRecuperacao});
   } catch (err) {
     console.error("Erro em recover/verify:", err);
     return res.status(500).json({ error: "Erro interno do servidor" });
