@@ -40,8 +40,9 @@ export default async function handler(req, res) {
 
     // 4️⃣ invalida o token de recuperação
     await tokens.updateOne({ _id: token._id }, { $set: { tokenUsado: true } });
-
+    //Comunica nova senha
     console.log("🔐 Senha redefinida para:", email);
+    
     return res.json({ success: true });
   } catch (err) {
     console.error("Erro em recover/complete:", err);
