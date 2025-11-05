@@ -62,8 +62,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Redireciona para etapa 2 de redefinição
-      window.location.href = `RecuperaSenha2.html?email=${encodeURIComponent(email)}`;
+      // Redireciona para etapa 2 de redefinição se tudo certo com token
+      if (data.success && data.tokenRecuperacao) {
+        window.location.href = `RecuperaSenha2.html?token=${data.tokenRecuperacao}`;
+      }
     } catch (err) {
       console.error("Erro ao validar código:", err);
       mensagemVerificacao.textContent = "Erro ao validar o código.";
