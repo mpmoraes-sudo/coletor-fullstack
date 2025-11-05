@@ -21,11 +21,13 @@ export default async function handler(req, res) {
     const codigo = Math.floor(10000 + Math.random() * 90000);
     const expiracao = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
+    const tokenRecuperacao = Math.random().toString(36).substring(2, 15);
     await tokens.insertOne({
       email,
       codigoDoCliente: codigo,
       DataEHoraExpiracao: expiracao,
-      tokenUsado: false
+      tokenUsado: false,
+      tokenRecuperacao
     });
 
     const mensagemHTML = `
