@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  // ✅ agora recebemos o token de recuperação seguro, e não o e-mail
   const urlParams = new URLSearchParams(window.location.search);
-  const email = urlParams.get("email");
+  const token = urlParams.get("token");
 
   const nomeInput = document.getElementById("nome");
   const emailInput = document.getElementById("email");
@@ -8,23 +9,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   const mensagem = document.getElementById("mensagem");
   const container = document.getElementById("containerComTudo");
 
-  // Se não houver e-mail na URL, redireciona
-  if (!email) {
+  // Se não houver token, redireciona
+  if (!token) {
     container.textContent = "Acesso inválido. Tente novamente.";
-    setTimeout(() => (window.location.href = "index.html"), 3000);
+    setTimeout(() => (window.location.href = "RecuperaSenha1.html"), 3000);
     return;
   }
 
-  // Preenche o campo de e-mail
-  emailInput.value = email;
-
+  // opcional: tentar obter o e-mail e nome a partir do token (pra exibir no formulário)
   try {
-    // Tenta puxar nome do usuário (opcional)
-    const r = await fetch(`/api/recover/user?email=${encodeURIComponent(email)}`);
+    const r = await fetch(`/api/recover/user-from-token?token=${encodeURIComponent(token)}`);
     const data = await r.json();
-    if (r.ok && data.nome) nomeInput.value = data.nome;
+    if (r.ok && data.email) {
+      emailInput.value = data.email;
+      if (data.nome) nomeInput.value = data.nome;
+    } else {
+      emailInput.value = "E-mail validado";
+    }
   } catch (err) {
-    console.warn("Não foi possível obter o nome do usuário:", err);
+    console.warn("Não foi possível obter informações do token:", err);
   }
 
   // ====== Submit para redefinir senha ======
@@ -54,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const r = await fetch("/api/recover/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, dataNascimento, senha })
+        body: JSON.stringify({ tokenRecuperacao: token, senha })
       });
 
       const data = await r.json();
