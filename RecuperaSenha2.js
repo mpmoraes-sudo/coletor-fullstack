@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const r = await fetch("/api/recover/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tokenRecuperacao: token, senha })
+        body: JSON.stringify({ tokenRecuperacao: token, senha, dataNascimento })
       });
 
       const data = await r.json();
