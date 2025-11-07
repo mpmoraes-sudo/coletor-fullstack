@@ -32,12 +32,16 @@ export default async function handler(req, res) {
     if (!usuario)
       return res.status(404).json({ error: "Usuário não encontrado." });
 
-    // 3️⃣ verifica data de nascimento (formato ISO yyyy-mm-dd)
-    const dataBanco = new Date(usuario.dataNascimento).toISOString().split("T")[0];
-    const dataInformada = new Date(dataNascimento).toISOString().split("T")[0];
+    // 3️⃣ normaliza ambas as datas e compara literalmente
+    // o cadastro2.js envia no formato yyyy-mm-dd
+    const dataInformada = dataNascimento.trim();
+    const dataNoBanco =
+      (usuario.dataNascimento || "").trim().substring(0, 10); // garante yyyy-mm-dd
 
-    if (dataBanco !== dataInformada)
+    if (!dataNoBanco || dataNoBanco !== dataInformada) {
+      console.warn(`Tentativa falha: ${email} informou ${dataInformada}, banco tem ${dataNoBanco}`);
       return res.status(403).json({ error: "Data de nascimento incorreta." });
+    }
 
     // 4️⃣ criptografa a nova senha e atualiza
     const senhaCriptografada = await bcrypt.hash(senha, 10);
