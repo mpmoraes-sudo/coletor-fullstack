@@ -122,7 +122,7 @@ body {
   margin-bottom: 15px;
 }
 
-/* ==== POSIÇÃO DO USUÁRIO LOGADO (SELEÇÃO DE MÓDULOS) ==== */
+/* ==== POSIÇÃO E ESTILO DO USUÁRIO LOGADO (CORES COERENTES COM O SISTEMA) ==== */
 .header {
   position: absolute;
   top: 20px;
@@ -131,22 +131,28 @@ body {
   align-items: center;
   gap: 10px;
   font-size: 14px;
-  color: #2e7d32; /* verde escuro */
+  color: #2e6eb5; /* azul padrão do sistema */
+  background-color: rgba(255, 255, 255, 0.85);
+  padding: 6px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* botão de logout */
 #botaoLogout {
-  background-color: #2e7d32;
+  background-color: #2e6eb5; /* azul principal */
   color: white;
   border: none;
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.3s ease;
+  font-weight: 500;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 #botaoLogout:hover {
-  background-color: #1b5e20;
+  background-color: #245e9d; /* tom um pouco mais escuro */
+  transform: scale(1.05);
 }
-
 
