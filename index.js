@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // guarda token e redireciona
         localStorage.setItem("tokenDeSessao", data.tokenDeSessao);
         setTimeout(() => {
-          window.location.href = "logado/SelecaoDeModulos.html";
+          window.location.href = "logado/SelecaoDeCu.html";
         }, 1500);
       } else {
         resposta.textContent = data.error || "Credenciais inválidas.";
