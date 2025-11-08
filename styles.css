@@ -122,3 +122,31 @@ body {
   margin-bottom: 15px;
 }
 
+/* ==== POSIÇÃO DO USUÁRIO LOGADO (SELEÇÃO DE MÓDULOS) ==== */
+.header {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #2e7d32; /* verde escuro */
+}
+
+#botaoLogout {
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+#botaoLogout:hover {
+  background-color: #1b5e20;
+}
+
+
