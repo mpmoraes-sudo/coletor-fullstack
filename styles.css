@@ -156,3 +156,14 @@ body {
   transform: scale(1.05);
 }
 
+/* ===== LABELS DOS CAMPOS ===== */
+.campo-label {
+  display: block;
+  text-align: left;
+  width: 100%;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: #2e6eb5; /* mesmo azul do sistema */
+  font-weight: 500;
+}
