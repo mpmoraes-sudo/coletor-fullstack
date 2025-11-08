@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    // ✅ valida a sessão no backend
+    // ✅ valida a sessão no backend.
     const r = await fetch("/api/session/verify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
