@@ -153,3 +153,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 });
+
+// ==== exclusão de projetos ====
+document.querySelector("#tabelaProjetos").addEventListener("click", async (e) => {
+  if (e.target.classList.contains("btn-excluir")) {
+    const idProjeto = e.target.dataset.id;
+    if (!confirm("Tem certeza que deseja excluir este projeto?")) return;
+
+    try {
+      const r = await fetch("/api/projetos/excluir", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idProjeto, emailUsuario })
+      });
+
+      const data = await r.json();
+
+      if (!r.ok || !data.success) {
+        alert(data.error || "Erro ao excluir projeto.");
+        return;
+      }
+
+      alert("Projeto excluído com sucesso!");
+      await carregarProjetos();
+    } catch (err) {
+      console.error("Erro ao excluir projeto:", err);
+      alert("Erro de conexão com o servidor.");
+    }
+  }
+});
+
