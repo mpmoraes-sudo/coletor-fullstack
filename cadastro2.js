@@ -37,16 +37,18 @@ document.addEventListener("DOMContentLoaded", () => {
     mensagem.style.color = "#333";
 
     try {
-      const r = await fetch("/api/signup/complete", {
+      const r = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          acao: "complete",
           email,
           nome,
           senha,
           dataNascimento
         })
       });
+
 
       const data = await r.json();
 
