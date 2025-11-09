@@ -9,19 +9,20 @@ document.addEventListener("DOMContentLoaded", () => {
   emailForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const email = document.getElementById("email").value.trim();
+
     msg.textContent = "Enviando código...";
     msg.style.color = "#333";
 
     try {
-      const r = await fetch("/api/signup/start", {
+      const resp = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ acao: "start", email })
       });
 
-      const data = await r.json();
+      const data = await resp.json();
 
-      if (!r.ok) {
+      if (!resp.ok || !data.success) {
         msg.textContent = data.error || "Erro ao enviar o código.";
         msg.style.color = "red";
         return;
@@ -29,7 +30,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       msg.textContent = `Código enviado para ${email}. Verifique sua caixa de entrada.`;
       msg.style.color = "green";
+
+      // Exibe a seção de verificação
       verificationSection.style.display = "block";
+
     } catch (err) {
       console.error("Erro ao enviar o código:", err);
       msg.textContent = "Erro de conexão com o servidor.";
@@ -47,25 +51,31 @@ document.addEventListener("DOMContentLoaded", () => {
     verificationMessage.style.color = "#333";
 
     try {
-      const r = await fetch("/api/signup/verify", {
+      const resp = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, codigo })
+        body: JSON.stringify({ acao: "verify", email, codigo })
       });
 
-      const data = await r.json();
+      const data = await resp.json();
 
-      if (!r.ok || !data.success) {
+      if (!resp.ok || !data.success) {
         verificationMessage.textContent = data.error || "Código inválido ou expirado.";
         verificationMessage.style.color = "red";
         return;
       }
 
+      verificationMessage.textContent = "E-mail verificado com sucesso!";
+      verificationMessage.style.color = "green";
+
       // Redireciona para a próxima etapa
-      window.location.href = `cadastro2.html?email=${encodeURIComponent(email)}`;
+      setTimeout(() => {
+        window.location.href = `cadastro2.html?email=${encodeURIComponent(email)}`;
+      }, 1000);
+
     } catch (err) {
       console.error("Erro ao validar código:", err);
-      verificationMessage.textContent = "Erro ao validar o código.";
+      verificationMessage.textContent = "Erro de conexão com o servidor.";
       verificationMessage.style.color = "red";
     }
   });
