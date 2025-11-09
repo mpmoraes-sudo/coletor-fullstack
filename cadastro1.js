@@ -1,39 +1,72 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cadastro - Etapa 1</title>
-  <link rel="stylesheet" href="styles.css">
-  <script defer src="cadastro1.js"></script>
-</head>
+document.addEventListener("DOMContentLoaded", () => {
+  const emailForm = document.getElementById("emailForm");
+  const verifyForm = document.getElementById("verifyForm");
+  const msg = document.getElementById("mensagemDeRetorno");
+  const verificationSection = document.getElementById("verificationSection");
+  const verificationMessage = document.getElementById("verificationMessage");
 
-<body>
-  <div class="login-container">
-    <h2>Cadastro</h2>
-    <p style="font-size: 0.95rem; color: #555; margin-bottom: 1rem;">
-      Insira seu e-mail para receber o código de verificação.
-    </p>
+  // ===== Enviar código por e-mail =====
+  emailForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    msg.textContent = "Enviando código...";
+    msg.style.color = "#333";
 
-    <!-- Formulário de envio de e-mail -->
-    <form id="emailForm">
-      <input type="email" id="email" placeholder="Digite seu e-mail" required>
-      <button type="submit">Enviar código</button>
-    </form>
+    try {
+      const r = await fetch("/api/signup/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
 
-    <p id="mensagemDeRetorno" style="margin-top: 10px;"></p>
+      const data = await r.json();
 
-    <!-- Campo de verificação (aparece depois) -->
-    <div id="verificationSection" style="display: none; margin-top: 1.5rem;">
-      <label for="campoParaInserirOCodigo" style="display:block; margin-bottom: 8px; color:#333;">
-        Digite o código recebido no e-mail:
-      </label>
-      <form id="verifyForm">
-        <input type="text" id="campoParaInserirOCodigo" placeholder="Código de 5 dígitos" required>
-        <button type="submit" id="verificarCodigo">Validar e-mail</button>
-      </form>
-      <p id="verificationMessage" style="margin-top: 10px;"></p>
-    </div>
-  </div>
-</body>
-</html>
+      if (!r.ok) {
+        msg.textContent = data.error || "Erro ao enviar o código.";
+        msg.style.color = "red";
+        return;
+      }
+
+      msg.textContent = `Código enviado para ${email}. Verifique sua caixa de entrada.`;
+      msg.style.color = "green";
+      verificationSection.style.display = "block";
+    } catch (err) {
+      console.error("Erro ao enviar o código:", err);
+      msg.textContent = "Erro de conexão com o servidor.";
+      msg.style.color = "red";
+    }
+  });
+
+  // ===== Verificar código =====
+  verifyForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    const codigo = document.getElementById("campoParaInserirOCodigo").value.trim();
+
+    verificationMessage.textContent = "Validando código...";
+    verificationMessage.style.color = "#333";
+
+    try {
+      const r = await fetch("/api/signup/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, codigo })
+      });
+
+      const data = await r.json();
+
+      if (!r.ok || !data.success) {
+        verificationMessage.textContent = data.error || "Código inválido ou expirado.";
+        verificationMessage.style.color = "red";
+        return;
+      }
+
+      // Redireciona para a próxima etapa
+      window.location.href = `cadastro2.html?email=${encodeURIComponent(email)}`;
+    } catch (err) {
+      console.error("Erro ao validar código:", err);
+      verificationMessage.textContent = "Erro ao validar o código.";
+      verificationMessage.style.color = "red";
+    }
+  });
+});
