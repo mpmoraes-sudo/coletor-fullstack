@@ -1,74 +1,41 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const emailForm = document.getElementById("emailForm");
-  const verifyForm = document.getElementById("verifyForm");
-  const msg = document.getElementById("mensagemDeRetorno");
-  const verificationSection = document.getElementById("verificationSection");
-  const verificationMessage = document.getElementById("verificationMessage");
+document.getElementById("formCadastro1").addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-  // ===== Enviar código por e-mail =====
-  emailForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const email = document.getElementById("email").value.trim();
-    msg.textContent = "Enviando código...";
-    msg.style.color = "#333";
+  const email = document.getElementById("emailCadastro").value.trim();
+  const resposta = document.getElementById("respostaAoUsuario");
 
-    try {
-      fetch("/api/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ acao: "start", email })
-      });
+  if (!email.includes("@")) {
+    resposta.textContent = "Por favor, insira um e-mail válido.";
+    resposta.style.color = "red";
+    return;
+  }
 
+  try {
+    const resp = await fetch("/api/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ acao: "start", email })
+    });
 
-      const data = await r.json();
+    const data = await resp.json();
 
-      if (!r.ok) {
-        msg.textContent = data.error || "Erro ao enviar o código.";
-        msg.style.color = "red";
-        return;
-      }
-
-      msg.textContent = `Código enviado para ${email}. Verifique sua caixa de entrada.`;
-      msg.style.color = "green";
-      verificationSection.style.display = "block";
-    } catch (err) {
-      console.error("Erro ao enviar o código:", err);
-      msg.textContent = "Erro de conexão com o servidor.";
-      msg.style.color = "red";
+    if (!resp.ok || !data.success) {
+      resposta.textContent = data.error || "Erro ao enviar o código.";
+      resposta.style.color = "red";
+      return;
     }
-  });
 
-  // ===== Verificar código =====
-  verifyForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const email = document.getElementById("email").value.trim();
-    const codigo = document.getElementById("campoParaInserirOCodigo").value.trim();
+    resposta.textContent = "Código enviado com sucesso! Verifique seu e-mail.";
+    resposta.style.color = "green";
 
-    verificationMessage.textContent = "Validando código...";
-    verificationMessage.style.color = "#333";
-
-    try {
-      fetch("/api/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ acao: "verify", email, codigo })
-      });
-
-
-      const data = await r.json();
-
-      if (!r.ok || !data.success) {
-        verificationMessage.textContent = data.error || "Código inválido ou expirado.";
-        verificationMessage.style.color = "red";
-        return;
-      }
-
-      // Redireciona para a próxima etapa
+    // Redireciona para a segunda etapa, enviando o e-mail na URL
+    setTimeout(() => {
       window.location.href = `cadastro2.html?email=${encodeURIComponent(email)}`;
-    } catch (err) {
-      console.error("Erro ao validar código:", err);
-      verificationMessage.textContent = "Erro ao validar o código.";
-      verificationMessage.style.color = "red";
-    }
-  });
+    }, 1500);
+
+  } catch (err) {
+    console.error("Erro ao enviar o código:", err);
+    resposta.textContent = "Erro de conexão com o servidor.";
+    resposta.style.color = "red";
+  }
 });
