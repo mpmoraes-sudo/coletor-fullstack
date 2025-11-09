@@ -9,33 +9,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // 🔍 Valida sessão
-  const r = await fetch("/api/session/verify", {
+  // Validação de sessão
+  const vr = await fetch("/api/session/verify", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ tokenDeSessao: token })
   });
-
-  const data = await r.json();
-  if (!r.ok || !data.success) {
+  const vdata = await vr.json();
+  if (!vr.ok || !vdata.success) {
     localStorage.removeItem("tokenDeSessao");
     window.location.href = "../index.html";
     return;
   }
-
-  const emailUsuario = data.email;
+  const emailUsuario = vdata.email;
   usuarioLogado.textContent = `Logado como: ${emailUsuario}`;
 
   document.getElementById("botaoLogout").addEventListener("click", () => {
     localStorage.removeItem("tokenDeSessao");
     window.location.href = "../index.html";
   });
-
   document.getElementById("botaoHome").addEventListener("click", () => {
     window.location.href = "SelecaoDeModulos.html";
   });
 
-  // === Função para carregar os projetos ===
+  // ========== Renderização da lista ==========
   async function carregarProjetos() {
     listaProjetos.innerHTML = "Carregando...";
     try {
@@ -44,176 +41,370 @@ document.addEventListener("DOMContentLoaded", async () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ acao: "listar", emailUsuario })
       });
-
       const projetos = await r.json();
       listaProjetos.innerHTML = "";
 
-      if (!r.ok || !Array.isArray(projetos) || projetos.length === 0) {
+      if (!Array.isArray(projetos) || projetos.length === 0) {
         listaProjetos.textContent = "Nenhum projeto encontrado.";
         return;
       }
 
-      projetos.forEach((p) => {
-        const membroAtual = p.membros.find(m => m.email === emailUsuario);
-        const permissaoAtual = membroAtual?.permissao || "leitor";
-
-        // container do projeto
-        const divProjeto = document.createElement("div");
-        divProjeto.className = "projeto";
-
-        const cabecalho = document.createElement("div");
-        cabecalho.className = "cabecalho-projeto";
-        cabecalho.innerHTML = `
-          <span class="toggle-projeto">▼</span>
-          <span class="nome-projeto">${p.nome}</span>
-          <span class="papel">(${permissaoAtual})</span>
-        `;
-        divProjeto.appendChild(cabecalho);
-
-        const divMembros = document.createElement("div");
-        divMembros.className = "membros";
-        divMembros.style.display = "none";
-        divProjeto.appendChild(divMembros);
-
-        // Toggle
-        cabecalho.addEventListener("click", () => {
-          divMembros.style.display =
-            divMembros.style.display === "none" ? "block" : "none";
-        });
-
-        // Renderizar membros
-        renderizarMembros(p, divMembros, permissaoAtual);
-
-        listaProjetos.appendChild(divProjeto);
-      });
+      projetos.forEach((p) => renderProjeto(p));
     } catch (err) {
-      console.error("Erro ao carregar projetos:", err);
+      console.error(err);
       listaProjetos.textContent = "Erro ao carregar projetos.";
     }
   }
 
-  // === Função para renderizar membros de um projeto ===
-  function renderizarMembros(projeto, container, permissaoUsuario) {
+  function renderProjeto(p) {
+    const meu = p.membros.find(m => m.email === emailUsuario);
+    const minhaPerm = meu?.permissao || "leitor";
+    const minhaAceitacao = meu?.conviteAceito === true;
+
+    const wrap = document.createElement("div");
+    wrap.className = "projeto";
+
+    const cab = document.createElement("div");
+    cab.className = "cabecalho-projeto";
+    const left = document.createElement("div");
+    left.style.display = "flex";
+    left.style.alignItems = "center";
+    left.style.gap = "8px";
+    const toggle = document.createElement("span");
+    toggle.className = "toggle-projeto";
+    toggle.textContent = "▸";
+    const nome = document.createElement("span");
+    nome.className = "nome-projeto";
+    nome.textContent = p.nome;
+    const papel = document.createElement("span");
+    papel.className = "papel";
+    papel.textContent = `(${minhaPerm}${minhaAceitacao ? "" : " - convite pendente"})`;
+    left.append(toggle, nome, papel);
+
+    const acoesProjeto = document.createElement("div");
+    acoesProjeto.className = "acoes-projeto";
+    if (minhaPerm === "editor" && minhaAceitacao) {
+      const btnExcluir = document.createElement("button");
+      btnExcluir.className = "btn-perigo";
+      btnExcluir.textContent = "Excluir projeto";
+      btnExcluir.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (!confirm("Tem certeza que deseja excluir este projeto?")) return;
+        const rr = await fetch("/api/projetos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ acao: "excluir", idProjeto: p._id, emailUsuario })
+        });
+        const data = await rr.json();
+        if (!rr.ok || !data.success) {
+          alert(data.error || "Erro ao excluir projeto.");
+          return;
+        }
+        await carregarProjetos();
+      });
+      acoesProjeto.appendChild(btnExcluir);
+    }
+
+    cab.append(left, acoesProjeto);
+    wrap.appendChild(cab);
+
+    const divMembros = document.createElement("div");
+    divMembros.className = "membros";
+    divMembros.style.display = "none";
+    wrap.appendChild(divMembros);
+
+    // toggle
+    cab.addEventListener("click", () => {
+      const aberto = divMembros.style.display !== "none";
+      divMembros.style.display = aberto ? "none" : "block";
+      toggle.textContent = aberto ? "▸" : "▾";
+    });
+
+    renderMembros(p, divMembros, minhaPerm, minhaAceitacao);
+
+    listaProjetos.appendChild(wrap);
+  }
+
+  function renderMembros(projeto, container, minhaPerm, minhaAceitacao) {
     container.innerHTML = "";
     const tabela = document.createElement("table");
-    tabela.innerHTML = `
-      <thead>
-        <tr><th>E-mail</th><th>Permissão</th>${permissaoUsuario === "editor" ? "<th>Ações</th>" : ""}</tr>
-      </thead>
-      <tbody></tbody>
-    `;
+    const thead = document.createElement("thead");
+    thead.innerHTML = `<tr>
+      <th>E-mail</th>
+      <th>Permissão</th>
+      <th>Status</th>
+      <th style="width:220px;">Ações</th>
+    </tr>`;
+    const tbody = document.createElement("tbody");
 
-    const corpo = tabela.querySelector("tbody");
-
-    projeto.membros.forEach((membro) => {
+    projeto.membros.forEach((m) => {
       const tr = document.createElement("tr");
 
       const tdEmail = document.createElement("td");
-      tdEmail.textContent = membro.email;
-      tr.appendChild(tdEmail);
+      tdEmail.textContent = m.email;
 
       const tdPerm = document.createElement("td");
-      if (permissaoUsuario === "editor" && membro.email !== usuarioLogado.textContent.split(": ")[1]) {
-        const select = document.createElement("select");
-        select.innerHTML = `
-          <option value="editor" ${membro.permissao === "editor" ? "selected" : ""}>Editor</option>
-          <option value="leitor" ${membro.permissao === "leitor" ? "selected" : ""}>Leitor</option>
-        `;
-        select.addEventListener("change", async () => {
-          membro.permissao = select.value;
-          await atualizarMembros(projeto._id, projeto.membros);
-        });
-        tdPerm.appendChild(select);
+      const tdStatus = document.createElement("td");
+      const tdAcoes = document.createElement("td");
+
+      if (m.conviteAceito === true) {
+        tdStatus.textContent = "membro";
       } else {
-        tdPerm.textContent = membro.permissao;
+        tdStatus.innerHTML = `<span class="tag-convite">convidado como ${m.permissao}</span>`;
       }
-      tr.appendChild(tdPerm);
 
-      if (permissaoUsuario === "editor") {
-        const tdAcoes = document.createElement("td");
-        if (membro.email !== usuarioLogado.textContent.split(": ")[1]) {
-          const btnRemover = document.createElement("button");
-          btnRemover.textContent = "Remover";
-          btnRemover.addEventListener("click", async () => {
-            if (confirm(`Remover ${membro.email} do projeto?`)) {
-              projeto.membros = projeto.membros.filter(m => m.email !== membro.email);
-              await atualizarMembros(projeto._id, projeto.membros);
-              renderizarMembros(projeto, container, permissaoUsuario);
-            }
+      const euMesmo = m.email === emailUsuario;
+
+      // Permissão: se eu for editor e o membro já aceitou (e não sou eu), posso ajustar
+      if (minhaPerm === "editor" && minhaAceitacao && m.conviteAceito === true && !euMesmo) {
+        const sel = document.createElement("select");
+        sel.innerHTML = `
+          <option value="editor" ${m.permissao === "editor" ? "selected" : ""}>Editor</option>
+          <option value="leitor" ${m.permissao === "leitor" ? "selected" : ""}>Leitor</option>
+        `;
+        sel.addEventListener("change", async () => {
+          const rr = await fetch("/api/projetos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              acao: "alterarPermissao",
+              idProjeto: projeto._id,
+              emailUsuario,
+              alterarMembro: { email: m.email, permissao: sel.value }
+            })
           });
-          tdAcoes.appendChild(btnRemover);
-        }
-        tr.appendChild(tdAcoes);
+          const data = await rr.json();
+          if (!rr.ok || !data.success) {
+            alert(data.error || "Erro ao alterar permissão.");
+            // desfaz UI se falhou
+            sel.value = m.permissao;
+            return;
+          }
+          m.permissao = sel.value;
+        });
+        tdPerm.appendChild(sel);
+      } else {
+        tdPerm.textContent = m.permissao;
       }
 
-      corpo.appendChild(tr);
+      // Ações
+      // 1) Se EU estou convidado: Aceitar / Recusar
+      if (euMesmo && m.conviteAceito === false) {
+        const bAceitar = document.createElement("button");
+        bAceitar.textContent = "Aceitar";
+        bAceitar.addEventListener("click", async () => {
+          const rr = await fetch("/api/projetos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ acao: "aceitarConvite", idProjeto: projeto._id, emailUsuario })
+          });
+          const data = await rr.json();
+          if (!rr.ok || !data.success) {
+            alert(data.error || "Erro ao aceitar convite.");
+            return;
+          }
+          // atualiza estado local e re-render
+          m.conviteAceito = true;
+          renderMembros(projeto, container, minhaPerm, true);
+        });
+
+        const bRecusar = document.createElement("button");
+        bRecusar.className = "btn-neutro";
+        bRecusar.textContent = "Recusar";
+        bRecusar.addEventListener("click", async () => {
+          const rr = await fetch("/api/projetos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ acao: "recusarConvite", idProjeto: projeto._id, emailUsuario })
+          });
+          const data = await rr.json();
+          if (!rr.ok || !data.success) {
+            alert(data.error || "Erro ao recusar convite.");
+            return;
+          }
+          // remove da lista local e re-render
+          projeto.membros = projeto.membros.filter(x => !(x.email === emailUsuario && x.conviteAceito === false));
+          renderMembros(projeto, container, minhaPerm, minhaAceitacao);
+        });
+
+        tdAcoes.append(bAceitar, bRecusar);
+      }
+
+      // 2) Se eu sou membro (aceito), posso "Sair do projeto"
+      if (euMesmo && m.conviteAceito === true) {
+        const bSair = document.createElement("button");
+        bSair.className = "btn-neutro";
+        bSair.textContent = "Sair do projeto";
+        bSair.addEventListener("click", async () => {
+          if (!confirm("Tem certeza que deseja sair deste projeto?")) return;
+          const rr = await fetch("/api/projetos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ acao: "autoRemover", idProjeto: projeto._id, emailUsuario })
+          });
+          const data = await rr.json();
+          if (!rr.ok || !data.success) {
+            alert(data.error || "Não foi possível sair. (Dica: pode não haver outro editor.)");
+            return;
+          }
+          // remove eu mesmo localmente e re-render
+          projeto.membros = projeto.membros.filter(x => x.email !== emailUsuario);
+          renderMembros(projeto, container, minhaPerm, minhaAceitacao);
+        });
+        tdAcoes.appendChild(bSair);
+      }
+
+      // 3) Se EU sou editor: posso cancelar convite ou remover membro (que não seja eu)
+      if (minhaPerm === "editor" && minhaAceitacao && !euMesmo) {
+        if (m.conviteAceito === false) {
+          const bCancelar = document.createElement("button");
+          bCancelar.className = "btn-neutro";
+          bCancelar.textContent = "Cancelar convite";
+          bCancelar.addEventListener("click", async () => {
+            const rr = await fetch("/api/projetos", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                acao: "removerMembro",
+                idProjeto: projeto._id,
+                emailUsuario,
+                alterarMembro: { email: m.email }
+              })
+            });
+            const data = await rr.json();
+            if (!rr.ok || !data.success) {
+              alert(data.error || "Erro ao cancelar convite.");
+              return;
+            }
+            projeto.membros = projeto.membros.filter(x => x.email !== m.email);
+            renderMembros(projeto, container, minhaPerm, minhaAceitacao);
+          });
+          tdAcoes.appendChild(bCancelar);
+        } else {
+          const bRemover = document.createElement("button");
+          bRemover.className = "btn-perigo";
+          bRemover.textContent = "Remover";
+          bRemover.addEventListener("click", async () => {
+            if (!confirm(`Remover ${m.email} do projeto?`)) return;
+            const rr = await fetch("/api/projetos", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                acao: "removerMembro",
+                idProjeto: projeto._id,
+                emailUsuario,
+                alterarMembro: { email: m.email }
+              })
+            });
+            const data = await rr.json();
+            if (!rr.ok || !data.success) {
+              alert(data.error || "Erro ao remover membro.");
+              return;
+            }
+            projeto.membros = projeto.membros.filter(x => x.email !== m.email);
+            renderMembros(projeto, container, minhaPerm, minhaAceitacao);
+          });
+          tdAcoes.appendChild(bRemover);
+        }
+      }
+
+      tr.append(tdEmail, tdPerm, tdStatus, tdAcoes);
+      tbody.appendChild(tr);
     });
 
-    // linha para adicionar novo membro (somente editor)
-    if (permissaoUsuario === "editor") {
+    // Linha para convidar — só se eu for editor aceito
+    if (minhaPerm === "editor" && minhaAceitacao) {
       const trAdd = document.createElement("tr");
       const tdEmail = document.createElement("td");
-      const inputEmail = document.createElement("input");
-      inputEmail.type = "email";
-      inputEmail.placeholder = "Novo e-mail";
-      tdEmail.appendChild(inputEmail);
+      const inpEmail = document.createElement("input");
+      inpEmail.type = "email";
+      inpEmail.placeholder = "E-mail para convidar";
+      tdEmail.appendChild(inpEmail);
 
       const tdPerm = document.createElement("td");
-      const select = document.createElement("select");
-      select.innerHTML = `
+      const selPerm = document.createElement("select");
+      selPerm.innerHTML = `
         <option value="editor">Editor</option>
         <option value="leitor" selected>Leitor</option>
       `;
-      tdPerm.appendChild(select);
+      tdPerm.appendChild(selPerm);
+
+      const tdStatus = document.createElement("td");
+      tdStatus.textContent = "—";
 
       const tdAdd = document.createElement("td");
-      const btnAdd = document.createElement("button");
-      btnAdd.textContent = "Adicionar";
-      btnAdd.addEventListener("click", async () => {
-        const novoEmail = inputEmail.value.trim();
-        if (!novoEmail) return alert("Informe um e-mail válido.");
-        if (projeto.membros.some(m => m.email === novoEmail)) return alert("Usuário já é membro.");
-        projeto.membros.push({
-          email: novoEmail,
-          permissao: select.value,
-          conviteAceito: true
+      const bAdd = document.createElement("button");
+      bAdd.textContent = "Convidar";
+      bAdd.addEventListener("click", async () => {
+        const novo = (inpEmail.value || "").trim();
+        if (!novo) return alert("Informe um e-mail válido.");
+        const rr = await fetch("/api/projetos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            acao: "convidar",
+            idProjeto: projeto._id,
+            emailUsuario,
+            novoMembro: { email: novo, permissao: selPerm.value }
+          })
         });
-        await atualizarMembros(projeto._id, projeto.membros);
-        renderizarMembros(projeto, container, permissaoUsuario);
+        const data = await rr.json();
+        if (!rr.ok || !data.success) {
+          alert(data.error || "Erro ao convidar.");
+          return;
+        }
+        projeto.membros.push({
+          email: novo,
+          permissao: selPerm.value,
+          conviteAceito: false
+        });
+        renderMembros(projeto, container, minhaPerm, minhaAceitacao);
+        inpEmail.value = "";
       });
 
-      tdAdd.appendChild(btnAdd);
-      trAdd.appendChild(tdEmail);
-      trAdd.appendChild(tdPerm);
-      trAdd.appendChild(tdAdd);
-      corpo.appendChild(trAdd);
+      tdAdd.appendChild(bAdd);
+      trAdd.append(tdEmail, tdPerm, tdStatus, tdAdd);
+      tbody.appendChild(trAdd);
     }
 
+    tabela.append(thead, tbody);
     container.appendChild(tabela);
   }
 
-  // === Função de atualização dos membros ===
-  async function atualizarMembros(idProjeto, membros) {
-    try {
-      const r = await fetch("/api/projetos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          acao: "editar",
-          idProjeto,
-          emailUsuario: usuarioLogado.textContent.split(": ")[1],
-          atualizacoes: { membros }
-        })
-      });
+  // ========== Criar projeto ==========
+  document.getElementById("formNovoProjeto").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nome = document.getElementById("nomeNovoProjeto").value.trim();
+    const emailPrimeiro = document.getElementById("inputNovoMembro").value.trim();
+    const permPrimeiro = document.getElementById("permissaoNovoMembro").value;
 
-      const data = await r.json();
-      if (!r.ok || !data.success) {
-        alert(data.error || "Erro ao atualizar projeto.");
-      }
-    } catch (err) {
-      console.error("Erro ao atualizar projeto:", err);
+    if (!nome) {
+      alert("Informe o nome do projeto.");
+      return;
     }
-  }
+
+    const membros = [];
+    // o criador entra como editor aceito
+    membros.push({ email: emailUsuario, permissao: "editor", conviteAceito: true });
+
+    // se informou outro membro, entra como convite pendente
+    if (emailPrimeiro) {
+      membros.push({ email: emailPrimeiro, permissao: permPrimeiro, conviteAceito: false });
+    }
+
+    const r = await fetch("/api/projetos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ acao: "criar", nome, membros })
+    });
+    const data = await r.json();
+    if (!r.ok || !data.success) {
+      alert(data.error || "Erro ao criar projeto.");
+      return;
+    }
+    (e.target).reset();
+    await carregarProjetos();
+  });
 
   await carregarProjetos();
 });
