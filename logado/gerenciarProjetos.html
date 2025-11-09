@@ -6,6 +6,66 @@
   <title>Gerenciar Projetos</title>
   <link rel="stylesheet" href="../styles.css" />
   <script defer src="gerenciarProjetos.js"></script>
+  <style>
+    /* Área da página mais larga para comportar a lista */
+    .page-container {
+      max-width: 1000px;
+      margin: 100px auto 40px auto; /* espaço para header fixo no canto */
+      padding: 0 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .card h2 { margin-top: 0; }
+
+    /* Lista de projetos (dropdowns) */
+    .projeto {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      padding: 8px;
+      background-color: #fafafa;
+    }
+    .cabecalho-projeto {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+      font-weight: 500;
+      color: #2e6eb5;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cabecalho-projeto:hover { background-color: #eef4ff; }
+    .toggle-projeto { font-weight: 700; margin-right: 8px; }
+    .acoes-projeto { display: flex; gap: 8px; }
+
+    .membros { margin-top: 8px; padding: 4px 8px; }
+    .membros table { width: 100%; border-collapse: collapse; }
+    .membros th, .membros td {
+      padding: 6px 8px; border-bottom: 1px solid #ddd; text-align: left;
+    }
+    .membros select {
+      padding: 4px; border-radius: 4px; border: 1px solid #ccc;
+    }
+    .membros button {
+      background-color: #2e6eb5; color: white; border: none;
+      border-radius: 4px; padding: 4px 8px; cursor: pointer;
+    }
+    .membros button:hover { background-color: #245e9d; }
+
+    .tag-convite {
+      display: inline-block; padding: 2px 8px; border-radius: 12px;
+      background: #fff3cd; color: #7a5d00; font-size: 12px; border: 1px solid #ffe49b;
+    }
+    .linha-acoes-eu { text-align: right; padding-top: 6px; }
+    .btn-perigo { background: #c0392b !important; }
+    .btn-neutro { background: #7f8c8d !important; }
+  </style>
 </head>
 
 <body>
@@ -15,39 +75,30 @@
     <button id="botaoLogout">Sair</button>
   </header>
 
-  <div class="login-container" style="margin-top: 80px;">
-    <h2>Seus Projetos</h2>
+  <div class="page-container">
+    <div class="card">
+      <h2>Seus Projetos</h2>
+      <div id="listaProjetos"></div>
+      <p id="mensagem" style="margin-top: 8px;"></p>
+    </div>
 
-   <div id="listaProjetos"></div>
-    <p id="mensagem"></p>
+    <div class="card">
+      <h2>Criar Novo Projeto</h2>
+      <form id="formNovoProjeto">
+        <label for="nomeNovoProjeto" class="campo-label">Nome do projeto</label>
+        <input type="text" id="nomeNovoProjeto" required />
 
+        <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+          <input type="email" id="inputNovoMembro" placeholder="E-mail do primeiro membro (opcional)" />
+          <select id="permissaoNovoMembro">
+            <option value="editor">Editor</option>
+            <option value="leitor" selected>Leitor</option>
+          </select>
+        </div>
 
-    <hr style="margin: 20px 0;"/>
-
-    <form id="formNovoProjeto">
-      <h3>Criar Novo Projeto</h3>
-
-      <label for="nomeNovoProjeto" class="campo-label">Nome:</label>
-      <input type="text" id="nomeNovoProjeto" required />
-
-      <label for="inputNovoMembro" class="campo-label">Adicionar e-mail de membro:</label>
-      <input type="email" id="inputNovoMembro" placeholder="Digite e pressione Enter" />
-
-      <table id="tabelaMembros">
-        <thead>
-          <tr>
-            <th>E-mail</th>
-            <th>Permissão</th>
-            <th>Ação</th>
-          </tr>
-        </thead>
-        <tbody id="corpoTabelaMembros"></tbody>
-      </table>
-
-      <button type="submit">Criar Projeto</button>
-    </form>
-
-    <p id="mensagem" style="margin-top: 1rem;"></p>
+        <button type="submit" style="margin-top:10px;">Criar Projeto</button>
+      </form>
+    </div>
   </div>
 </body>
 </html>
