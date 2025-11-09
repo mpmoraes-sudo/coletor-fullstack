@@ -13,11 +13,12 @@ document.addEventListener("DOMContentLoaded", () => {
     msg.style.color = "#333";
 
     try {
-      const r = await fetch("/api/signup/start", {
+      fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ acao: "start", email })
       });
+
 
       const data = await r.json();
 
@@ -47,11 +48,12 @@ document.addEventListener("DOMContentLoaded", () => {
     verificationMessage.style.color = "#333";
 
     try {
-      const r = await fetch("/api/signup/verify", {
+      fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, codigo })
+        body: JSON.stringify({ acao: "verify", email, codigo })
       });
+
 
       const data = await r.json();
 
