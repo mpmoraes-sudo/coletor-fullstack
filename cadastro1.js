@@ -1,41 +1,39 @@
-document.getElementById("formCadastro1").addEventListener("submit", async (event) => {
-  event.preventDefault();
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro - Etapa 1</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="cadastro1.js"></script>
+</head>
 
-  const email = document.getElementById("emailCadastro").value.trim();
-  const resposta = document.getElementById("respostaAoUsuario");
+<body>
+  <div class="login-container">
+    <h2>Cadastro</h2>
+    <p style="font-size: 0.95rem; color: #555; margin-bottom: 1rem;">
+      Insira seu e-mail para receber o código de verificação.
+    </p>
 
-  if (!email.includes("@")) {
-    resposta.textContent = "Por favor, insira um e-mail válido.";
-    resposta.style.color = "red";
-    return;
-  }
+    <!-- Formulário de envio de e-mail -->
+    <form id="emailForm">
+      <input type="email" id="email" placeholder="Digite seu e-mail" required>
+      <button type="submit">Enviar código</button>
+    </form>
 
-  try {
-    const resp = await fetch("/api/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ acao: "start", email })
-    });
+    <p id="mensagemDeRetorno" style="margin-top: 10px;"></p>
 
-    const data = await resp.json();
-
-    if (!resp.ok || !data.success) {
-      resposta.textContent = data.error || "Erro ao enviar o código.";
-      resposta.style.color = "red";
-      return;
-    }
-
-    resposta.textContent = "Código enviado com sucesso! Verifique seu e-mail.";
-    resposta.style.color = "green";
-
-    // Redireciona para a segunda etapa, enviando o e-mail na URL
-    setTimeout(() => {
-      window.location.href = `cadastro2.html?email=${encodeURIComponent(email)}`;
-    }, 1500);
-
-  } catch (err) {
-    console.error("Erro ao enviar o código:", err);
-    resposta.textContent = "Erro de conexão com o servidor.";
-    resposta.style.color = "red";
-  }
-});
+    <!-- Campo de verificação (aparece depois) -->
+    <div id="verificationSection" style="display: none; margin-top: 1.5rem;">
+      <label for="campoParaInserirOCodigo" style="display:block; margin-bottom: 8px; color:#333;">
+        Digite o código recebido no e-mail:
+      </label>
+      <form id="verifyForm">
+        <input type="text" id="campoParaInserirOCodigo" placeholder="Código de 5 dígitos" required>
+        <button type="submit" id="verificarCodigo">Validar e-mail</button>
+      </form>
+      <p id="verificationMessage" style="margin-top: 10px;"></p>
+    </div>
+  </div>
+</body>
+</html>
