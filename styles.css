@@ -167,3 +167,60 @@ body {
   color: #2e6eb5; /* mesmo azul do sistema */
   font-weight: 500;
 }
+
+
+.projeto {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background-color: #fafafa;
+}
+
+.cabecalho-projeto {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  color: #2e6eb5;
+  cursor: pointer;
+}
+
+.cabecalho-projeto:hover {
+  background-color: #eef4ff;
+}
+
+.membros {
+  margin-top: 8px;
+  padding: 4px 8px;
+}
+
+.membros table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.membros th, .membros td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+
+.membros select {
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.membros button {
+  background-color: #2e6eb5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.membros button:hover {
+  background-color: #245e9d;
+}
