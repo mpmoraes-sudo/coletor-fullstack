@@ -31,6 +31,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("botaoHome").addEventListener("click", () => {
     window.location.href = "SelecaoDeModulos.html";
   });
+  // mostrar/esconder criação de projeto
+  document.getElementById("botaoNovoProjeto").addEventListener("click", () => {
+    const card = document.getElementById("cardNovoProjeto");
+    card.style.display = card.style.display === "none" ? "block" : "none";
+  });
+
 
   // ========== Renderização da lista ==========
   async function carregarProjetos() {
