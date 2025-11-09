@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gerenciar Projetos</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <script defer src="gerenciarProjetos.js"></script>
+</head>
+
+<body>
+  <header class="header">
+    <span id="usuarioLogado">Validando sessão...</span>
+    <button id="botaoHome">Home</button>
+    <button id="botaoLogout">Sair</button>
+  </header>
+
+  <div class="login-container" style="margin-top: 80px;">
+    <h2>Seus Projetos</h2>
+
+    <table id="tabelaProjetos">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Permissões</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <hr style="margin: 20px 0;"/>
+
+    <form id="formNovoProjeto">
+      <h3>Criar Novo Projeto</h3>
+
+      <label for="nomeNovoProjeto" class="campo-label">Nome:</label>
+      <input type="text" id="nomeNovoProjeto" required />
+
+      <label for="inputNovoMembro" class="campo-label">Adicionar e-mail de membro:</label>
+      <input type="email" id="inputNovoMembro" placeholder="Digite e pressione Enter" />
+
+      <table id="tabelaMembros">
+        <thead>
+          <tr>
+            <th>E-mail</th>
+            <th>Permissão</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="corpoTabelaMembros"></tbody>
+      </table>
+
+      <button type="submit">Criar Projeto</button>
+    </form>
+
+    <p id="mensagem" style="margin-top: 1rem;"></p>
+  </div>
+</body>
+</html>
