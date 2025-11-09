@@ -95,22 +95,27 @@
       <h2>Seus Projetos</h2>
       <div id="listaProjetos"></div>
       <p id="mensagem" style="margin-top: 8px;"></p>
+      <div style="text-align:right; margin-top:12px;">
+        <button id="botaoNovoProjeto" style="background-color:#27ae60;">+ Novo Projeto</button>
+      </div>
     </div>
 
-    <div class="card">
+    <div class="card" id="cardNovoProjeto" style="display:none;">
       <h2>Criar Novo Projeto</h2>
       <form id="formNovoProjeto">
         <label for="nomeNovoProjeto" class="campo-label">Nome do projeto</label>
         <input type="text" id="nomeNovoProjeto" required />
-
+    
         <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
-          <input type="email" id="inputNovoMembro" placeholder="E-mail do primeiro membro (opcional)" />
+          <input type="email" id="inputNovoMembro" placeholder="E-mail de membro a convidar" />
           <select id="permissaoNovoMembro">
             <option value="editor">Editor</option>
             <option value="leitor" selected>Leitor</option>
           </select>
         </div>
-
+    
+        <ul id="listaConvites" style="margin-top:8px; padding-left:16px;"></ul>
+    
         <button type="submit" style="margin-top:10px;">Criar Projeto</button>
       </form>
     </div>
