@@ -36,12 +36,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ==== carregar projetos do usuário ====
   async function carregarProjetos() {
-    const r = await fetch("/api/projetos/listar", {
+    const r = await fetch("/api/projetos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ emailUsuario })
+      body: JSON.stringify({ acao: "listar", emailUsuario })
     });
-
+    
     const lista = await r.json();
     const tbody = document.querySelector("#tabelaProjetos tbody");
     tbody.innerHTML = "";
@@ -133,10 +133,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       conviteAceito: true
     });
 
-    const r = await fetch("/api/projetos/criar", {
+    const r = await fetch("/api/projetos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome, membros: membrosArray })
+      body: JSON.stringify({ acao: "criar", nome, membros: membrosArray })
     });
 
     const result = await r.json();
@@ -161,10 +161,10 @@ document.querySelector("#tabelaProjetos").addEventListener("click", async (e) =>
     if (!confirm("Tem certeza que deseja excluir este projeto?")) return;
 
     try {
-      const r = await fetch("/api/projetos/excluir", {
-        method: "DELETE",
+      const r = await fetch("/api/projetos", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idProjeto, emailUsuario })
+        body: JSON.stringify({ acao: "excluir", idProjeto, emailUsuario })
       });
 
       const data = await r.json();
