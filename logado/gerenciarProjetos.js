@@ -4,6 +4,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const usuarioLogado = document.getElementById("usuarioLogado");
   const token = localStorage.getItem("tokenDeSessao");
 
+  // elementos da criação de projeto
+  const listaConvites = document.getElementById("listaConvites");
+  const inputNovoMembro = document.getElementById("inputNovoMembro");
+  const selectPermissao = document.getElementById("permissaoNovoMembro");
+  const membrosPendentes = [];
+
   if (!token) {
     window.location.href = "../index.html";
     return;
@@ -21,9 +27,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "../index.html";
     return;
   }
+
   const emailUsuario = vdata.email;
   usuarioLogado.textContent = `Logado como: ${emailUsuario}`;
 
+  // ===== Navegação =====
   document.getElementById("botaoLogout").addEventListener("click", () => {
     localStorage.removeItem("tokenDeSessao");
     window.location.href = "../index.html";
@@ -31,14 +39,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("botaoHome").addEventListener("click", () => {
     window.location.href = "SelecaoDeModulos.html";
   });
-  // mostrar/esconder criação de projeto
-  document.getElementById("botaoNovoProjeto").addEventListener("click", () => {
-    const card = document.getElementById("cardNovoProjeto");
-    card.style.display = card.style.display === "none" ? "block" : "none";
+
+  // ===== Mostrar / esconder formulário de novo projeto =====
+  const botaoNovoProjeto = document.getElementById("botaoNovoProjeto");
+  const cardNovoProjeto = document.getElementById("cardNovoProjeto");
+
+  botaoNovoProjeto.addEventListener("click", () => {
+    cardNovoProjeto.style.display =
+      cardNovoProjeto.style.display === "none" ? "block" : "none";
   });
 
-
-  // ========== Renderização da lista ==========
+  // ======= LISTAGEM DE PROJETOS =======
   async function carregarProjetos() {
     listaProjetos.innerHTML = "Carregando...";
     try {
@@ -62,6 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // Renderiza cada projeto
   function renderProjeto(p) {
     const meu = p.membros.find(m => m.email === emailUsuario);
     const minhaPerm = meu?.permissao || "leitor";
@@ -119,7 +131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     divMembros.style.display = "none";
     wrap.appendChild(divMembros);
 
-    // toggle
+    // Toggle dropdown
     cab.addEventListener("click", () => {
       const aberto = divMembros.style.display !== "none";
       divMembros.style.display = aberto ? "none" : "block";
@@ -127,10 +139,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     renderMembros(p, divMembros, minhaPerm, minhaAceitacao);
-
     listaProjetos.appendChild(wrap);
   }
 
+  // Renderiza os membros
   function renderMembros(projeto, container, minhaPerm, minhaAceitacao) {
     container.innerHTML = "";
     const tabela = document.createElement("table");
@@ -153,21 +165,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       const tdStatus = document.createElement("td");
       const tdAcoes = document.createElement("td");
 
-      if (m.conviteAceito === true) {
-        tdStatus.textContent = "membro";
-      } else {
-        tdStatus.innerHTML = `<span class="tag-convite">convidado como ${m.permissao}</span>`;
-      }
+      tdStatus.innerHTML = m.conviteAceito
+        ? "membro"
+        : `<span class="tag-convite">convidado como ${m.permissao}</span>`;
 
       const euMesmo = m.email === emailUsuario;
 
-      // Permissão: se eu for editor e o membro já aceitou (e não sou eu), posso ajustar
-      if (minhaPerm === "editor" && minhaAceitacao && m.conviteAceito === true && !euMesmo) {
+      if (minhaPerm === "editor" && minhaAceitacao && m.conviteAceito && !euMesmo) {
         const sel = document.createElement("select");
         sel.innerHTML = `
           <option value="editor" ${m.permissao === "editor" ? "selected" : ""}>Editor</option>
-          <option value="leitor" ${m.permissao === "leitor" ? "selected" : ""}>Leitor</option>
-        `;
+          <option value="leitor" ${m.permissao === "leitor" ? "selected" : ""}>Leitor</option>`;
         sel.addEventListener("change", async () => {
           const rr = await fetch("/api/projetos", {
             method: "POST",
@@ -182,7 +190,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           const data = await rr.json();
           if (!rr.ok || !data.success) {
             alert(data.error || "Erro ao alterar permissão.");
-            // desfaz UI se falhou
             sel.value = m.permissao;
             return;
           }
@@ -194,50 +201,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       // Ações
-      // 1) Se EU estou convidado: Aceitar / Recusar
-      if (euMesmo && m.conviteAceito === false) {
+      if (euMesmo && !m.conviteAceito) {
         const bAceitar = document.createElement("button");
         bAceitar.textContent = "Aceitar";
-        bAceitar.addEventListener("click", async () => {
-          const rr = await fetch("/api/projetos", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ acao: "aceitarConvite", idProjeto: projeto._id, emailUsuario })
-          });
-          const data = await rr.json();
-          if (!rr.ok || !data.success) {
-            alert(data.error || "Erro ao aceitar convite.");
-            return;
-          }
-          // atualiza estado local e re-render
-          m.conviteAceito = true;
-          renderMembros(projeto, container, minhaPerm, true);
-        });
-
+        bAceitar.addEventListener("click", () => aceitarOuRecusar(projeto._id, "aceitarConvite"));
         const bRecusar = document.createElement("button");
         bRecusar.className = "btn-neutro";
         bRecusar.textContent = "Recusar";
-        bRecusar.addEventListener("click", async () => {
-          const rr = await fetch("/api/projetos", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ acao: "recusarConvite", idProjeto: projeto._id, emailUsuario })
-          });
-          const data = await rr.json();
-          if (!rr.ok || !data.success) {
-            alert(data.error || "Erro ao recusar convite.");
-            return;
-          }
-          // remove da lista local e re-render
-          projeto.membros = projeto.membros.filter(x => !(x.email === emailUsuario && x.conviteAceito === false));
-          renderMembros(projeto, container, minhaPerm, minhaAceitacao);
-        });
-
+        bRecusar.addEventListener("click", () => aceitarOuRecusar(projeto._id, "recusarConvite"));
         tdAcoes.append(bAceitar, bRecusar);
       }
 
-      // 2) Se eu sou membro (aceito), posso "Sair do projeto"
-      if (euMesmo && m.conviteAceito === true) {
+      if (euMesmo && m.conviteAceito) {
         const bSair = document.createElement("button");
         bSair.className = "btn-neutro";
         bSair.textContent = "Sair do projeto";
@@ -250,75 +225,46 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
           const data = await rr.json();
           if (!rr.ok || !data.success) {
-            alert(data.error || "Não foi possível sair. (Dica: pode não haver outro editor.)");
+            alert(data.error || "Não foi possível sair.");
             return;
           }
-          // remove eu mesmo localmente e re-render
           projeto.membros = projeto.membros.filter(x => x.email !== emailUsuario);
           renderMembros(projeto, container, minhaPerm, minhaAceitacao);
         });
         tdAcoes.appendChild(bSair);
       }
 
-      // 3) Se EU sou editor: posso cancelar convite ou remover membro (que não seja eu)
       if (minhaPerm === "editor" && minhaAceitacao && !euMesmo) {
-        if (m.conviteAceito === false) {
-          const bCancelar = document.createElement("button");
-          bCancelar.className = "btn-neutro";
-          bCancelar.textContent = "Cancelar convite";
-          bCancelar.addEventListener("click", async () => {
-            const rr = await fetch("/api/projetos", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                acao: "removerMembro",
-                idProjeto: projeto._id,
-                emailUsuario,
-                alterarMembro: { email: m.email }
-              })
-            });
-            const data = await rr.json();
-            if (!rr.ok || !data.success) {
-              alert(data.error || "Erro ao cancelar convite.");
-              return;
-            }
-            projeto.membros = projeto.membros.filter(x => x.email !== m.email);
-            renderMembros(projeto, container, minhaPerm, minhaAceitacao);
+        const bRemover = document.createElement("button");
+        bRemover.className = "btn-perigo";
+        bRemover.textContent = m.conviteAceito ? "Remover" : "Cancelar convite";
+        bRemover.addEventListener("click", async () => {
+          if (!confirm(`Remover ${m.email}?`)) return;
+          const rr = await fetch("/api/projetos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              acao: "removerMembro",
+              idProjeto: projeto._id,
+              emailUsuario,
+              alterarMembro: { email: m.email }
+            })
           });
-          tdAcoes.appendChild(bCancelar);
-        } else {
-          const bRemover = document.createElement("button");
-          bRemover.className = "btn-perigo";
-          bRemover.textContent = "Remover";
-          bRemover.addEventListener("click", async () => {
-            if (!confirm(`Remover ${m.email} do projeto?`)) return;
-            const rr = await fetch("/api/projetos", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                acao: "removerMembro",
-                idProjeto: projeto._id,
-                emailUsuario,
-                alterarMembro: { email: m.email }
-              })
-            });
-            const data = await rr.json();
-            if (!rr.ok || !data.success) {
-              alert(data.error || "Erro ao remover membro.");
-              return;
-            }
-            projeto.membros = projeto.membros.filter(x => x.email !== m.email);
-            renderMembros(projeto, container, minhaPerm, minhaAceitacao);
-          });
-          tdAcoes.appendChild(bRemover);
-        }
+          const data = await rr.json();
+          if (!rr.ok || !data.success) {
+            alert(data.error || "Erro ao remover.");
+            return;
+          }
+          projeto.membros = projeto.membros.filter(x => x.email !== m.email);
+          renderMembros(projeto, container, minhaPerm, minhaAceitacao);
+        });
+        tdAcoes.appendChild(bRemover);
       }
 
       tr.append(tdEmail, tdPerm, tdStatus, tdAcoes);
       tbody.appendChild(tr);
     });
 
-    // Linha para convidar — só se eu for editor aceito
     if (minhaPerm === "editor" && minhaAceitacao) {
       const trAdd = document.createElement("tr");
       const tdEmail = document.createElement("td");
@@ -326,24 +272,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       inpEmail.type = "email";
       inpEmail.placeholder = "E-mail para convidar";
       tdEmail.appendChild(inpEmail);
-
       const tdPerm = document.createElement("td");
       const selPerm = document.createElement("select");
-      selPerm.innerHTML = `
-        <option value="editor">Editor</option>
-        <option value="leitor" selected>Leitor</option>
-      `;
+      selPerm.innerHTML = `<option value="editor">Editor</option><option value="leitor" selected>Leitor</option>`;
       tdPerm.appendChild(selPerm);
-
       const tdStatus = document.createElement("td");
       tdStatus.textContent = "—";
-
       const tdAdd = document.createElement("td");
       const bAdd = document.createElement("button");
       bAdd.textContent = "Convidar";
       bAdd.addEventListener("click", async () => {
         const novo = (inpEmail.value || "").trim();
-        if (!novo) return alert("Informe um e-mail válido.");
+        if (!novo.includes("@")) return alert("E-mail inválido.");
+        // valida usuário antes de convidar
+        const rv = await fetch("/api/usuarios", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ acao: "validarEmails", emails: [novo] })
+        });
+        const dv = await rv.json();
+        if (!dv.success || dv.encontrados.length === 0) {
+          alert("Usuário não encontrado no sistema.");
+          return;
+        }
         const rr = await fetch("/api/projetos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -367,7 +318,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         renderMembros(projeto, container, minhaPerm, minhaAceitacao);
         inpEmail.value = "";
       });
-
       tdAdd.appendChild(bAdd);
       trAdd.append(tdEmail, tdPerm, tdStatus, tdAdd);
       tbody.appendChild(trAdd);
@@ -377,26 +327,80 @@ document.addEventListener("DOMContentLoaded", async () => {
     container.appendChild(tabela);
   }
 
-  // ========== Criar projeto ==========
+  async function aceitarOuRecusar(idProjeto, acao) {
+    const rr = await fetch("/api/projetos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ acao, idProjeto, emailUsuario })
+    });
+    const data = await rr.json();
+    if (!rr.ok || !data.success) {
+      alert(data.error || "Erro na ação.");
+      return;
+    }
+    await carregarProjetos();
+  }
+
+  // ======== ADICIONAR MEMBROS ANTES DA CRIAÇÃO DO PROJETO ========
+  inputNovoMembro.addEventListener("keydown", async (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const email = inputNovoMembro.value.trim();
+      const permissao = selectPermissao.value;
+
+      if (!email.includes("@") || membrosPendentes.some(m => m.email === email)) {
+        alert("E-mail inválido ou já adicionado.");
+        return;
+      }
+
+      // checa se usuário existe no banco
+      const r = await fetch("/api/usuarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acao: "validarEmails", emails: [email] })
+      });
+      const data = await r.json();
+      if (!data.success || data.encontrados.length === 0) {
+        alert("Este e-mail não está cadastrado como usuário válido.");
+        return;
+      }
+
+      membrosPendentes.push({ email, permissao });
+      atualizarListaConvites();
+      inputNovoMembro.value = "";
+    }
+  });
+
+  function atualizarListaConvites() {
+    listaConvites.innerHTML = "";
+    membrosPendentes.forEach((m, idx) => {
+      const li = document.createElement("li");
+      li.textContent = `${m.email} (${m.permissao})`;
+      const bX = document.createElement("button");
+      bX.textContent = "✕";
+      bX.className = "btn-neutro";
+      bX.style.marginLeft = "6px";
+      bX.addEventListener("click", () => {
+        membrosPendentes.splice(idx, 1);
+        atualizarListaConvites();
+      });
+      li.appendChild(bX);
+      listaConvites.appendChild(li);
+    });
+  }
+
+  // ======== CRIAR PROJETO ========
   document.getElementById("formNovoProjeto").addEventListener("submit", async (e) => {
     e.preventDefault();
     const nome = document.getElementById("nomeNovoProjeto").value.trim();
-    const emailPrimeiro = document.getElementById("inputNovoMembro").value.trim();
-    const permPrimeiro = document.getElementById("permissaoNovoMembro").value;
+    if (!nome) return alert("Informe o nome do projeto.");
 
-    if (!nome) {
-      alert("Informe o nome do projeto.");
-      return;
-    }
-
-    const membros = [];
-    // o criador entra como editor aceito
-    membros.push({ email: emailUsuario, permissao: "editor", conviteAceito: true });
-
-    // se informou outro membro, entra como convite pendente
-    if (emailPrimeiro) {
-      membros.push({ email: emailPrimeiro, permissao: permPrimeiro, conviteAceito: false });
-    }
+    const membros = [
+      { email: emailUsuario, permissao: "editor", conviteAceito: true },
+      ...membrosPendentes.map(m => ({ ...m, conviteAceito: false }))
+    ];
+    membrosPendentes.length = 0;
+    atualizarListaConvites();
 
     const r = await fetch("/api/projetos", {
       method: "POST",
@@ -408,7 +412,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert(data.error || "Erro ao criar projeto.");
       return;
     }
-    (e.target).reset();
+    e.target.reset();
     await carregarProjetos();
   });
 
