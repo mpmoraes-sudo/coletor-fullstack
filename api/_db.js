@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
-const dbName = process.env.MONGODB_DB;
+const dbName = process.env.DB_NAME;
 
 let cachedClient = null;
 let cachedDb = null;
