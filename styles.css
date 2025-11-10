@@ -228,15 +228,11 @@ body {
 /* ==== BOTÕES PADRÃO DO SISTEMA ==== */
 .botaoPadrao {
   background-color: #2e6eb5;
-  color: #fff;
+  color: white;
   border: none;
-  border-radius: 6px;
-  padding: 8px 14px;
+  border-radius: 4px;
+  padding: 4px 8px;
   cursor: pointer;
-  font-size: 15px;
-  font-family: "Segoe UI", Roboto, sans-serif;
-  font-weight: 500;
-  transition: background-color 0.2s, transform 0.1s;
 }
 
 .botaoPadrao:hover {
@@ -255,16 +251,12 @@ body {
 }
 
 button {
-  background-color: #2e6eb5;
+   background-color: #2e6eb5;
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 8px 14px;
+  border-radius: 4px;
+  padding: 4px 8px;
   cursor: pointer;
-  font-size: 15px;
-  font-family: "Segoe UI", Roboto, sans-serif;
-  font-weight: 500;
-  transition: background-color 0.2s, transform 0.1s;
 }
 
 button:hover {
