@@ -348,6 +348,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       const email = inputNovoMembro.value.trim();
       const permissao = selectPermissao.value;
 
+      if (email === emailUsuario) {
+      alert("Você já será adicionado automaticamente como editor do projeto.");
+      inputNovoMembro.value = "";
+      return;
+      }
+      
       if (!email.includes("@") || membrosPendentes.some(m => m.email === email)) {
         alert("E-mail inválido ou já adicionado.");
         return;
