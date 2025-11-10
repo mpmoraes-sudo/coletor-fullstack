@@ -63,7 +63,19 @@
       background: #fff3cd; color: #7a5d00; font-size: 12px; border: 1px solid #ffe49b;
     }
     .linha-acoes-eu { text-align: right; padding-top: 6px; }
-    .btn-perigo { background: #c0392b !important; }
+    .btn-perigo { 
+      background-color: #2e6eb5 !important; /* azul padrão */
+      color: white !important;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-weight: 500;  
+    }
+    .btn-perigo:hover {
+      background-color: #245e9d !important; /* tom mais escuro no hover */
+    }
+    
     .btn-neutro { background: #7f8c8d !important; }
 
     .page-container {
@@ -86,7 +98,7 @@
 <body>
   <header class="header">
     <span id="usuarioLogado">Validando sessão...</span>
-    <button id="botaoHome">Home</button>
+    <button id="botaoHome" class="botaoPadrao">Home</button>
     <button id="botaoLogout">Sair</button>
   </header>
 
@@ -96,7 +108,7 @@
       <div id="listaProjetos"></div>
       <p id="mensagem" style="margin-top: 8px;"></p>
       <div style="text-align:right; margin-top:12px;">
-        <button id="botaoNovoProjeto" style="background-color:#27ae60;">+ Novo Projeto</button>
+        <button id="botaoNovoProjeto" class="botaoPadrao">+ Novo Projeto</button>
       </div>
     </div>
 
