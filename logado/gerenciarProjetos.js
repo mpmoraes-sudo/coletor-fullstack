@@ -382,7 +382,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           atualizarListaConvites();
           inputNovoMembro.value = "";
         }
-      });
+      
 
 
       // checa se usuário existe no banco
