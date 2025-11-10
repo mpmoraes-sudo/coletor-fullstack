@@ -343,35 +343,55 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ======== ADICIONAR MEMBROS ANTES DA CRIAÇÃO DO PROJETO ========
     inputNovoMembro.addEventListener("keydown", async (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const email = inputNovoMembro.value.trim();
-      const permissao = selectPermissao.value;
-  
-      if (!email.includes("@") || membrosPendentes.some(m => m.email === email)) {
-        alert("E-mail inválido ou já adicionado.");
-        return;
+      if (e.key === "Enter") {
+        e.preventDefault();
+    
+        // 1️⃣ lê valores
+        const email = inputNovoMembro.value.trim();
+        const permissao = selectPermissao.value;
+    
+        // 2️⃣ impede adicionar o próprio e-mail do usuário logado
+        if (email === emailUsuario) {
+          alert("Você já será adicionado automaticamente como editor do projeto.");
+          inputNovoMembro.value = "";
+          return;
+        }
+    
+        // 3️⃣ valida formato e duplicados
+        if (!email.includes("@") || membrosPendentes.some(m => m.email === email)) {
+          alert("E-mail inválido ou já adicionado.");
+          inputNovoMembro.value = "";
+          return;
+        }
+    
+        // 4️⃣ tenta validar o e-mail no banco
+        try {
+          const resp = await fetch("/api/usuarios", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ acao: "validarEmails", emails: [email] })
+          });
+    
+          const data = await resp.json();
+    
+          if (!data.success || data.encontrados.length === 0) {
+            alert("Este e-mail não está cadastrado como usuário válido.");
+            inputNovoMembro.value = "";
+            return;
+          }
+    
+          // 5️⃣ adiciona à lista
+          membrosPendentes.push({ email, permissao });
+          atualizarListaConvites();
+          inputNovoMembro.value = "";
+    
+        } catch (err) {
+          console.error("Erro ao validar e-mail:", err);
+          alert("Erro de conexão ao verificar o e-mail.");
+        }
       }
-//AQUI ACIMA QUE DEU PROBLEMA
+    });
 
-
-      // checa se usuário existe no banco
-      const r = await fetch("/api/usuarios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ acao: "validarEmails", emails: [email] })
-      });
-      const data = await r.json();
-      if (!data.success || data.encontrados.length === 0) {
-        alert("Este e-mail não está cadastrado como usuário válido.");
-        return;
-      }
-
-      membrosPendentes.push({ email, permissao });
-      atualizarListaConvites();
-      inputNovoMembro.value = "";
-    }
-  });
 
   function atualizarListaConvites() {
     listaConvites.innerHTML = "";
