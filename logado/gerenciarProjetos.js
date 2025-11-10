@@ -342,47 +342,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ======== ADICIONAR MEMBROS ANTES DA CRIAÇÃO DO PROJETO ========
-  inputNovoMembro.addEventListener("keydown", async (e) => {
-  if (e.key === "Enter") {
-          e.preventDefault();
-          const email = inputNovoMembro.value.trim();
-          const permissao = selectPermissao.value;
-      
-          // 🚫 Evita adicionar o próprio e-mail do usuário logado
-          if (email === emailUsuario) {
-            alert("Você já será adicionado automaticamente como editor do projeto.");
-            inputNovoMembro.value = "";
-            return;
-          }
-      
-          // Validação básica e duplicados
-          if (!email.includes("@") || membrosPendentes.some(m => m.email === email)) {
-            alert("E-mail inválido ou já adicionado.");
-            inputNovoMembro.value = "";
-            return;
-          }
-      
-          // Verifica se o usuário existe no banco
-          const r = await fetch("/api/usuarios", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ acao: "validarEmails", emails: [email] })
-          });
-      
-          const data = await r.json();
-      
-          if (!data.success || data.encontrados.length === 0) {
-            alert("Este e-mail não está cadastrado como usuário válido.");
-            inputNovoMembro.value = "";
-            return;
-          }
-      
-          // Adiciona à lista de convites pendentes
-          membrosPendentes.push({ email, permissao });
-          atualizarListaConvites();
-          inputNovoMembro.value = "";
-        }
-      
+    inputNovoMembro.addEventListener("keydown", async (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const email = inputNovoMembro.value.trim();
+      const permissao = selectPermissao.value;
+  
+      if (!email.includes("@") || membrosPendentes.some(m => m.email === email)) {
+        alert("E-mail inválido ou já adicionado.");
+        return;
+      }
+//AQUI ACIMA QUE DEU PROBLEMA
 
 
       // checa se usuário existe no banco
