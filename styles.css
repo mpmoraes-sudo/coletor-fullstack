@@ -297,3 +297,13 @@ button:hover {
   padding: 0;
 }
 
+.card .container {
+  background: transparent;
+  box-shadow: none;
+  margin: 0;
+  max-width: 100%;
+  padding: 0;
+  text-align: left; /* <<< NOVO: para não ficar tudo centralizado */
+}
+
+
