@@ -33,7 +33,8 @@ export default async function handler(req, res) {
     valor,
     opcoes,
     itens,
-    secoes
+    secoes,
+    tipo
   } = req.body || {};
 
 
