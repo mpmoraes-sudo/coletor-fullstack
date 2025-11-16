@@ -1,65 +1,35 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gerenciar Templates</title>
-  <link rel="stylesheet" href="../styles.css">
-  <style>
-    /* área dos templates */
-    .template {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      padding: 8px;
-      background-color: #fafafa;
-      cursor: pointer;
-    }
-    .template:hover {
-      background-color: #eef4ff;
-    }
-    .template-nome {
-      font-weight: 600;
-      color: #2e6eb5;
-    }
-    .template-acoes {
-      margin-top: 8px;
-      display: flex;
-      gap: 8px;
-    }
-  </style>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Lista com projetos e templates</title>
+    <!-- Reaproveita o CSS que já existe -->
+    <link rel="stylesheet" href="gerenciarProjetos.css" />
+  </head>
 
-<body>
-  <header class="header">
-    <span id="usuarioLogado">Validando sessão...</span>
-    <button id="botaoHome" class="botaoPadrao">Home</button>
-    <button id="botaoLogout" class="botaoPadrao">Sair</button>
-  </header>
-
-  <div class="page-container">
-    <div class="card">
-      <h2>Templates do Projeto</h2>
-      <p id="nomeProjeto"></p>
-
-      <div id="listaTemplates"></div>
-      <p id="mensagemTemplates"></p>
-
-      <button id="botaoNovoTemplate" class="botaoPadrao" style="margin-top:10px;">
-        + Novo Template
-      </button>
+  <body>
+    <div class="header">
+      <span id="usuarioLogado">Validando sessão...</span>
+      <button id="botaoHome" class="botaoPadrao">Home</button>
+      <button id="botaoLogout" class="botaoPadrao">Sair</button>
     </div>
 
-    <div class="card" id="cardNovoTemplate" style="display:none;">
-      <h3>Criar novo template</h3>
-      <form id="formNovoTemplate">
-        <label for="nomeNovoTemplate">Nome do Template</label>
-        <input type="text" id="nomeNovoTemplate" required>
-        <button type="submit" class="botaoPadrao" style="margin-top:10px;">Criar</button>
-      </form>
+    <div class="container escondido">
+      <h1>Gerenciamento de Templates</h1>
+      <table id="tabelaProjetos">
+        <thead>
+          <tr>
+            <th style="width: 28px;"></th> <!-- coluna da setinha -->
+            <th>Projetos</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Projetos serão inseridos aqui via JS -->
+        </tbody>
+      </table>
     </div>
-  </div>
 
-  <script src="gerenciarTemplates.js"></script>
-</body>
+    <script defer src="gerenciarTemplates.js"></script>
+  </body>
 </html>
