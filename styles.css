@@ -15,6 +15,14 @@ body {
   color: #333;
 }
 
+/* Só para a tela de login */
+body.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
 /* ===== CONTAINER ===== */
 .login-container {
   width: 100%;
