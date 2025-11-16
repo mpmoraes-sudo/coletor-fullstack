@@ -104,6 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function adicionarLinhaProjeto(projeto) {
     const tr = document.createElement("tr");
+    tr.classList.add("linha-projeto"); 
     tr.innerHTML = `
       <td class="icone-expandir" style="cursor:pointer;width:28px;text-align:center;">▶</td>
       <td>${projeto.nome}</td>
@@ -215,7 +216,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <a href="editarTemplate.html?projetoId=${encodeURIComponent(
                   String(projeto._id)
                 )}&templateId=${encodeURIComponent(String(t._id))}"
-                   class="link-editar" title="Editar template" style="text-decoration:none;">✏️</a>
+                   class="link-editar" title="Editar template" style="text-decoration:none;">✎</a>
 
                 <!-- Link Excluir: ação via JS -->
                 <a href="#" class="link-excluir" data-tid="${encodeURIComponent(
