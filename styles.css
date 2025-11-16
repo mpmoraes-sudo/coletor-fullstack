@@ -7,13 +7,11 @@
 
 body {
   font-family: "Segoe UI", Roboto, Arial, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
   background: linear-gradient(135deg, #eef2f3, #dfe9f3);
   color: #333;
+  min-height: 100vh;
 }
+
 
 /* Só para a tela de login */
 body.login-page {
