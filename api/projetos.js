@@ -26,6 +26,7 @@ export default async function handler(req, res) {
     atualizacoes,
     novoMembro,          // { email, permissao }
     alterarMembro,       // { email, permissao }
+    templateId           // <-- NOVO: usado para excluir template
   } = req.body || {};
 
   try {
@@ -117,7 +118,6 @@ export default async function handler(req, res) {
 
       projeto.membros[idx].conviteAceito = true;
 
-      // garantir que, ao aceitar como editor, o projeto tenha ao menos 1 editor (ok)
       await colecao.updateOne(
         { _id: projeto._id },
         { $set: { membros: projeto.membros, atualizadoEm: new Date() } }
@@ -269,6 +269,74 @@ export default async function handler(req, res) {
       );
 
       return res.json({ success: true, message: "Projeto atualizado." });
+    }
+
+    // ========== CRIAR TEMPLATE ==========
+    if (acao === "criarTemplate") {
+      if (!idProjeto || !emailUsuario || !nome)
+        return res.status(400).json({ error: "idProjeto, emailUsuario e nome são obrigatórios." });
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem criar templates." });
+      }
+
+      const agora = new Date();
+      const novoTemplate = {
+        _id: new ObjectId(),
+        nome,
+        criadoEm: agora,
+        atualizadoEm: agora
+      };
+
+      if (!Array.isArray(projeto.templates)) {
+        projeto.templates = [];
+      }
+      projeto.templates.push(novoTemplate);
+
+      await colecao.updateOne(
+        { _id: projeto._id },
+        { $set: { templates: projeto.templates, atualizadoEm: new Date() } }
+      );
+
+      return res.json({
+        success: true,
+        message: "Template criado com sucesso.",
+        template: novoTemplate
+      });
+    }
+
+    // ========== EXCLUIR TEMPLATE ==========
+    if (acao === "excluirTemplate") {
+      if (!idProjeto || !emailUsuario || !templateId)
+        return res.status(400).json({ error: "idProjeto, emailUsuario e templateId são obrigatórios." });
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem excluir templates." });
+      }
+
+      const antes = Array.isArray(projeto.templates) ? projeto.templates.length : 0;
+      projeto.templates = (projeto.templates || []).filter(
+        t => String(t._id) !== String(templateId)
+      );
+
+      if (projeto.templates.length === antes) {
+        return res.status(404).json({ error: "Template não encontrado." });
+      }
+
+      await colecao.updateOne(
+        { _id: projeto._id },
+        { $set: { templates: projeto.templates, atualizadoEm: new Date() } }
+      );
+
+      return res.json({ success: true, message: "Template excluído com sucesso." });
     }
 
     return res.status(400).json({ error: "Ação inválida." });
