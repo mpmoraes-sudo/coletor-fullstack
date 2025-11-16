@@ -299,34 +299,49 @@ button:hover {
   text-align: left; /* <<< NOVO: para não ficar tudo centralizado */
 }
 
+/* Tabela da tela de templates: cada linha principal vira um "card" cinza */
 #tabelaProjetos {
+  width: 100%;                 /* <<< garante que vá até o fim da .card */
   border-collapse: separate;
-  border-spacing: 0 8px; /* espaço vertical entre projetos */
+  border-spacing: 0 8px;       /* espaço vertical entre projetos */
 }
 
+#tabelaProjetos thead th {
+  background-color: transparent;
+  border-bottom: none;
+}
+
+/* Linha principal do projeto */
 #tabelaProjetos tbody tr.linha-projeto {
   background-color: #fafafa;
   border: 1px solid #e0e0e0;
+  cursor: pointer;             /* <<< visual de “clicável” na linha inteira */
 }
 
 #tabelaProjetos tbody tr.linha-projeto td {
   padding: 8px 12px;
 }
 
+/* Bordas arredondadas na “caixinha” do projeto */
 #tabelaProjetos tbody tr.linha-projeto td:first-child {
   border-top-left-radius: 8px;
   border-bottom-left-radius: 8px;
 }
-
 #tabelaProjetos tbody tr.linha-projeto td:last-child {
   border-top-right-radius: 8px;
   border-bottom-right-radius: 8px;
 }
 
+/* Linha que contém a lista de templates (sublinha) */
 #tabelaProjetos tbody tr.linha-templates td {
   padding: 6px 16px 12px;
   border: none;
   background: #fff;
+}
+
+/* Hover na linha para reforçar UX de “clique aqui” */
+#tabelaProjetos tbody tr.linha-projeto:hover {
+  background-color: #f0f4ff;
 }
 
 .lista-templates .link-editar {
