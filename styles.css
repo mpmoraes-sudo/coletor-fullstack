@@ -264,3 +264,30 @@ button:hover {
   transform: translateY(-1px);
 }
 
+/* ===== Layout da tela de templates ===== */
+
+/* Mesmo conceito do gerenciarProjetos novo */
+.page-container {
+  max-width: 1000px;
+  margin: 100px auto 40px auto; /* espaço pro header no canto */
+  padding: 0 16px;
+}
+
+/* Caixa branca principal */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  padding: 20px 24px;
+}
+
+/* Quando a .container antiga estiver DENTRO da .card,
+   limpamos o estilo de "caixa" dela pra não ficar caixa dentro de caixa */
+.card .container {
+  background: transparent;
+  box-shadow: none;
+  margin: 0;
+  max-width: 100%;
+  padding: 0;
+}
+
