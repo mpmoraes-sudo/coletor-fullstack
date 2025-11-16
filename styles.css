@@ -299,4 +299,51 @@ button:hover {
   text-align: left; /* <<< NOVO: para não ficar tudo centralizado */
 }
 
+#tabelaProjetos {
+  border-collapse: separate;
+  border-spacing: 0 8px; /* espaço vertical entre projetos */
+}
+
+#tabelaProjetos tbody tr.linha-projeto {
+  background-color: #fafafa;
+  border: 1px solid #e0e0e0;
+}
+
+#tabelaProjetos tbody tr.linha-projeto td {
+  padding: 8px 12px;
+}
+
+#tabelaProjetos tbody tr.linha-projeto td:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+#tabelaProjetos tbody tr.linha-projeto td:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+#tabelaProjetos tbody tr.linha-templates td {
+  padding: 6px 16px 12px;
+  border: none;
+  background: #fff;
+}
+
+.lista-templates .link-editar {
+  color: #333;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.lista-templates .link-excluir {
+  color: #b00020;
+  font-size: 15px;
+  text-decoration: none;
+}
+
+.lista-templates .link-excluir:hover {
+  color: #d32f2f;
+}
+
+
 
