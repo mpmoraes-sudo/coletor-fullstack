@@ -26,8 +26,16 @@ export default async function handler(req, res) {
     atualizacoes,
     novoMembro,          // { email, permissao }
     alterarMembro,       // { email, permissao }
-    templateId           // <-- NOVO: usado para excluir template
+    templateId,          // identificador do template
+    secaoId,
+    itemId,
+    campo,
+    valor,
+    opcoes,
+    itens,
+    secoes
   } = req.body || {};
+
 
   try {
     // ========== LISTAR ==========
@@ -72,6 +80,399 @@ export default async function handler(req, res) {
       await colecao.deleteOne({ _id: new ObjectId(idProjeto) });
       return res.json({ success: true, message: "Projeto excluído com sucesso." });
     }
+    //AQUI COMÇEA O COLADO
+    // ========== OBTER TEMPLATE (para edição) ==========
+    if (acao === "obterTemplate") {
+      if (!idProjeto || !templateId || !emailUsuario) {
+        return res.status(400).json({ error: "Campos obrigatórios ausentes." });
+      }
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem editar templates." });
+      }
+
+      const template = (projeto.templates || []).find(
+        t => String(t._id) === String(templateId)
+      );
+      if (!template) {
+        return res.status(404).json({ error: "Template não encontrado neste projeto." });
+      }
+
+      return res.json({
+        success: true,
+        projeto: { _id: projeto._id, nome: projeto.nome },
+        template
+      });
+    }
+
+    // ========== CRIAR SEÇÃO ==========
+    if (acao === "criarSecao") {
+      if (!idProjeto || !templateId || !emailUsuario) {
+        return res.status(400).json({ error: "Campos obrigatórios ausentes." });
+      }
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem criar seções." });
+      }
+
+      const novaSecao = {
+        idSecao: "s" + Date.now(),
+        titulo: "Clique para renomear o titulo",
+        itens: []
+      };
+
+      const result = await colecao.updateOne(
+        { _id: projeto._id, "templates._id": new ObjectId(templateId) },
+        {
+          $push: { "templates.$.secoes": novaSecao },
+          $set: { atualizadoEm: new Date() }
+        }
+      );
+
+      if (!result.acknowledged || result.matchedCount === 0) {
+        return res.status(500).json({ error: "Falha ao adicionar seção." });
+      }
+
+      return res.json({ success: true, secao: novaSecao });
+    }
+
+    // ========== SET CAMPO DA SEÇÃO (ex.: título) ==========
+    if (acao === "setCampoSecao") {
+      if (!idProjeto || !templateId || !secaoId || !campo) {
+        return res.status(400).json({ error: "Campos obrigatórios ausentes." });
+      }
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem editar seções." });
+      }
+
+      const result = await colecao.updateOne(
+        { _id: new ObjectId(idProjeto) },
+        {
+          $set: {
+            [`templates.$[t].secoes.$[s].${campo}`]: valor,
+            atualizadoEm: new Date()
+          }
+        },
+        {
+          arrayFilters: [
+            { "t._id": new ObjectId(templateId) },
+            { "s.idSecao": secaoId }
+          ]
+        }
+      );
+
+      if (!result.acknowledged || result.matchedCount === 0) {
+        return res.status(500).json({ error: "Falha ao atualizar seção." });
+      }
+
+      return res.json({ success: true });
+    }
+
+    // ========== ADICIONAR ITEM INICIAL ==========
+    if (acao === "adicionarItemInicial") {
+      if (!idProjeto || !templateId || !secaoId || !tipo) {
+        return res.status(400).json({ error: "Campos obrigatórios ausentes." });
+      }
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem adicionar itens." });
+      }
+
+      const novoItem = { idItem: "i" + Date.now(), tipo, obrigatorio: false };
+      if (tipo === "textoFixo") novoItem.conteudo = "";
+      else if (tipo === "perguntaSubjetiva") novoItem.pergunta = "";
+      else {
+        novoItem.pergunta = "";
+        novoItem.opcoes = [];
+      }
+
+      const result = await colecao.updateOne(
+        { _id: new ObjectId(idProjeto) },
+        {
+          $push: { "templates.$[t].secoes.$[s].itens": novoItem },
+          $set: { atualizadoEm: new Date() }
+        },
+        {
+          arrayFilters: [
+            { "t._id": new ObjectId(templateId) },
+            { "s.idSecao": secaoId }
+          ]
+        }
+      );
+
+      if (!result.acknowledged || result.matchedCount === 0) {
+        return res.status(500).json({ error: "Falha ao adicionar item." });
+      }
+
+      return res.json({ success: true, item: novoItem });
+    }
+
+    // ========== SET CAMPO DO ITEM ==========
+    if (acao === "setCampoItem") {
+      if (!idProjeto || !templateId || !secaoId || !itemId || !campo) {
+        return res.status(400).json({ error: "Campos obrigatórios ausentes." });
+      }
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem editar itens." });
+      }
+
+      const result = await colecao.updateOne(
+        { _id: new ObjectId(idProjeto) },
+        {
+          $set: {
+            [`templates.$[t].secoes.$[s].itens.$[i].${campo}`]: valor,
+            atualizadoEm: new Date()
+          }
+        },
+        {
+          arrayFilters: [
+            { "t._id": new ObjectId(templateId) },
+            { "s.idSecao": secaoId },
+            { "i.idItem": itemId }
+          ]
+        }
+      );
+
+      if (!result.acknowledged || result.matchedCount === 0) {
+        return res.status(500).json({ error: "Falha ao atualizar item." });
+      }
+
+      return res.json({ success: true });
+    }
+
+    // ========== SALVAR OPÇÕES (itens categóricos/múltiplos) ==========
+    if (acao === "salvarOpcoes") {
+      if (!idProjeto || !templateId || !secaoId || !itemId) {
+        return res.status(400).json({ error: "Campos obrigatórios ausentes." });
+      }
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem editar opções." });
+      }
+
+      const limpas = (opcoes || []).filter(op => op && op.trim() !== "");
+
+      const result = await colecao.updateOne(
+        { _id: new ObjectId(idProjeto) },
+        {
+          $set: {
+            "templates.$[t].secoes.$[s].itens.$[i].opcoes": limpas,
+            atualizadoEm: new Date()
+          }
+        },
+        {
+          arrayFilters: [
+            { "t._id": new ObjectId(templateId) },
+            { "s.idSecao": secaoId },
+            { "i.idItem": itemId }
+          ]
+        }
+      );
+
+      if (!result.acknowledged || result.matchedCount === 0) {
+        return res.status(500).json({ error: "Falha ao salvar opções." });
+      }
+
+      return res.json({ success: true });
+    }
+
+    // ========== DELETAR ITEM ==========
+    if (acao === "deletarItem") {
+      if (!idProjeto || !templateId || !secaoId || !itemId) {
+        return res.status(400).json({ error: "Campos obrigatórios ausentes." });
+      }
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem remover itens." });
+      }
+
+      const result = await colecao.updateOne(
+        { _id: new ObjectId(idProjeto) },
+        {
+          $pull: { "templates.$[t].secoes.$[s].itens": { idItem } },
+          $set: { atualizadoEm: new Date() }
+        },
+        {
+          arrayFilters: [
+            { "t._id": new ObjectId(templateId) },
+            { "s.idSecao": secaoId }
+          ]
+        }
+      );
+
+      if (!result.acknowledged || result.matchedCount === 0) {
+        return res.status(500).json({ error: "Falha ao remover item." });
+      }
+
+      return res.json({ success: true });
+    }
+
+    // ========== ATUALIZAR ORDEM DOS ITENS DE UMA SEÇÃO ==========
+    if (acao === "atualizarOrdemItens") {
+      if (!idProjeto || !templateId || !secaoId || !Array.isArray(itens)) {
+        return res.status(400).json({ error: "Campos obrigatórios ausentes ou inválidos." });
+      }
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem reordenar itens." });
+      }
+
+      const result = await colecao.updateOne(
+        { _id: new ObjectId(idProjeto) },
+        {
+          $set: {
+            "templates.$[t].secoes.$[s].itens": itens,
+            atualizadoEm: new Date()
+          }
+        },
+        {
+          arrayFilters: [
+            { "t._id": new ObjectId(templateId) },
+            { "s.idSecao": secaoId }
+          ]
+        }
+      );
+
+      if (!result.acknowledged || result.matchedCount === 0) {
+        return res.status(500).json({ error: "Falha ao reordenar itens." });
+      }
+
+      return res.json({ success: true });
+    }
+
+    // ========== SET OBRIGATORIEDADE DO ITEM ==========
+    if (acao === "setObrigatorioItem") {
+      if (!idProjeto || !templateId || !secaoId || !itemId) {
+        return res.status(400).json({ error: "Campos obrigatórios ausentes." });
+      }
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem alterar obrigatoriedade." });
+      }
+
+      const result = await colecao.updateOne(
+        { _id: new ObjectId(idProjeto) },
+        {
+          $set: {
+            "templates.$[t].secoes.$[s].itens.$[i].obrigatorio": Boolean(valor),
+            atualizadoEm: new Date()
+          }
+        },
+        {
+          arrayFilters: [
+            { "t._id": new ObjectId(templateId) },
+            { "s.idSecao": secaoId },
+            { "i.idItem": itemId }
+          ]
+        }
+      );
+
+      if (!result.acknowledged || result.matchedCount === 0) {
+        return res.status(500).json({ error: "Falha ao atualizar obrigatoriedade." });
+      }
+
+      return res.json({ success: true });
+    }
+
+    // ========== DELETAR SEÇÃO ==========
+    if (acao === "deletarSecao") {
+      if (!idProjeto || !templateId || !secaoId) {
+        return res.status(400).json({ error: "Campos obrigatórios ausentes." });
+      }
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem remover seções." });
+      }
+
+      const result = await colecao.updateOne(
+        { _id: new ObjectId(idProjeto), "templates._id": new ObjectId(templateId) },
+        {
+          $pull: { "templates.$.secoes": { idSecao: secaoId } },
+          $set: { atualizadoEm: new Date() }
+        }
+      );
+
+      if (!result.acknowledged || result.matchedCount === 0) {
+        return res.status(500).json({ error: "Falha ao remover seção." });
+      }
+
+      return res.json({ success: true });
+    }
+
+    // ========== ATUALIZAR ORDEM DAS SEÇÕES ==========
+    if (acao === "atualizarOrdemSecoes") {
+      if (!idProjeto || !templateId || !Array.isArray(secoes)) {
+        return res.status(400).json({ error: "Campos obrigatórios ausentes ou inválidos." });
+      }
+
+      const projeto = await getProjetoById(db, idProjeto);
+      if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
+
+      const meu = projeto.membros.find(m => m.email === emailUsuario);
+      if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
+        return res.status(403).json({ error: "Apenas editores podem reordenar seções." });
+      }
+
+      const result = await colecao.updateOne(
+        { _id: new ObjectId(idProjeto), "templates._id": new ObjectId(templateId) },
+        {
+          $set: {
+            "templates.$.secoes": secoes,
+            atualizadoEm: new Date()
+          }
+        }
+      );
+
+      if (!result.acknowledged || result.matchedCount === 0) {
+        return res.status(500).json({ error: "Falha ao reordenar seções." });
+      }
+
+      return res.json({ success: true });
+    }
+// AQUI TERMINA O COLADO ---------------------------------------------------------------------
+    
 
     // ========== CONVIDAR NOVO MEMBRO ==========
     if (acao === "convidar") {
