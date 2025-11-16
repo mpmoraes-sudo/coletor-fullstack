@@ -361,4 +361,168 @@ button:hover {
 }
 
 
+/* ESSA PARTE PARA BAIXO SOMENTE PARA O EDITAR TEMPLATES:                    ------------------------------------------------------- */
+
+.secao {
+  border: 1px solid #e0e0e0;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  background: #fff;
+}
+
+.secao-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.lista-itens {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.item-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-controls {
+  display: flex;
+  gap: 6px;
+}
+
+.botaoPerigo {
+  background: #f8d7da;
+  color: #7b1e1e;
+}
+
+.input-text,
+.input-pergunta,
+.input-opcao {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.lista-opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.opcao-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pill-obrigatorio {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  margin-left: 8px;
+}
+
+
+.btn-asterisco {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #aaa;
+}
+.btn-asterisco.ativo {
+  color: #2e7d32; /* verde */
+}
+
+.select-tipo {
+  margin-bottom: 6px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.botaoMover {
+  background-color: #fdfdfd; /* offwhite */
+  color: #2e7d32; /* verde escuro */
+  border: 1px solid #c8e6c9; /* borda verde clara */
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.botaoMover:hover {
+  background-color: #f0f0f0; /* leve cinza claro no hover */
+}
+
+/* Título da seção */
+.titulo-secao {
+  color: #1b5e20;            /* Verde escuro */
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+
+/* Bloco do item */
+.item-preenchimento {
+  margin-bottom: 14px;
+  color: #000;               /* Texto padrão: preto */
+  font-size: 14px;
+}
+
+/* Inputs */
+.item-preenchimento input[type="text"],
+.item-preenchimento select {
+  padding: 6px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 60%;
+  margin-top: 4px;
+}
+
+/* Checkboxes em colunas */
+.item-preenchimento label {
+  display: block;
+  margin-left: 16px;
+  margin-top: 4px;
+  font-weight: normal;
+  color: #000;
+}
+
+/* Pergunta do item */
+.item-pergunta {
+  font-weight: 500;
+  margin-bottom: 4px;
+  display: block;
+  color: #000;
+}
+
+
+
+
+
 
