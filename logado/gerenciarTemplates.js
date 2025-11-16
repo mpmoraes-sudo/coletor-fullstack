@@ -104,20 +104,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function adicionarLinhaProjeto(projeto) {
     const tr = document.createElement("tr");
-    tr.classList.add("linha-projeto"); 
+    tr.classList.add("linha-projeto");
     tr.innerHTML = `
-      <td class="icone-expandir" style="cursor:pointer;width:28px;text-align:center;">▶</td>
-      <td>${projeto.nome}</td>
+      <td class="icone-expandir" style="width:28px;text-align:center;">▶</td>
+      <td class="celula-nome-projeto">${projeto.nome}</td>
     `;
     tbody.appendChild(tr);
-
+  
     const icone = tr.querySelector(".icone-expandir");
-    icone.addEventListener("click", async () => {
+  
+    // Função que faz o abre/fecha (mesma lógica que você já tinha)
+    async function toggleExpandir() {
       const jaTemSub =
         tr.nextElementSibling &&
         tr.nextElementSibling.classList.contains("linha-templates");
-
-      // Se já existe a sublinha, só alterna mostrar/esconder
+  
+      // se já existe a sublinha, só alterna mostrar/esconder
       if (jaTemSub) {
         const sub = tr.nextElementSibling;
         const mostrando = sub.style.display !== "none";
@@ -125,20 +127,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         icone.textContent = mostrando ? "▶" : "▼";
         return;
       }
-
-      // Cria a sublinha
+  
+      // cria a sublinha
       const trTemplates = document.createElement("tr");
       trTemplates.classList.add("linha-templates");
       const td = document.createElement("td");
-      td.colSpan = 3;
+      td.colSpan = 2; // temos 2 colunas: seta + nome do projeto
       td.innerHTML = `<div style="padding:8px 4px;">Carregando templates...</div>`;
       trTemplates.appendChild(td);
       tr.insertAdjacentElement("afterend", trTemplates);
       icone.textContent = "▼";
-
+  
       await renderSublistaTemplates(td, projeto);
+    }
+  
+    // Clicar na SETA: expande/colapsa sem propagar pra linha
+    icone.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleExpandir();
+    });
+  
+    // Clicar em qualquer lugar da linha do projeto: também expande/colapsa
+    tr.addEventListener("click", (e) => {
+      // Se no futuro tiver link/botão dentro da linha principal, não queremos
+      // quebrar o comportamento desses elementos
+      if (e.target.closest("a, button")) return;
+      toggleExpandir();
     });
   }
+
 
   // ===== Chamada de API para criar template =====
   async function criarTemplate(projeto, nome) {
