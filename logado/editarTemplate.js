@@ -73,40 +73,50 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ---------- Helpers de UI ----------
 
     function makeEditableSpan({ text, placeholder, className, onSave }) {
-      let valorAtual = text; // manter referência local
-
-      const span = document.createElement("span");
-      span.textContent = valorAtual || placeholder;
-      span.className = className || "";
-      span.style.cursor = "pointer";
-
-      span.addEventListener("click", () => {
-        const input = document.createElement("input");
-        input.type = "text";
-        input.value = valorAtual || "";
-        input.className = className || "";
-        input.style.width = "100%";
-
-        const commit = async () => {
-          const novo = input.value.trim();
-          if (novo !== valorAtual) {
-            await onSave(novo);
-            valorAtual = novo;
-          }
-          await renderizarTudo();
-        };
-
-        input.addEventListener("blur", commit);
-        input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") input.blur();
+      let valorAtual = text; // valor atual guardado em closure
+    
+      // função que cria o span clicável
+      function criarSpan() {
+        const span = document.createElement("span");
+        span.textContent = valorAtual || placeholder;
+        span.className = className || "";
+        span.style.cursor = "pointer";
+    
+        span.addEventListener("click", () => {
+          const input = document.createElement("input");
+          input.type = "text";
+          input.value = valorAtual || "";
+          input.className = className || "";
+          input.style.width = "100%";
+    
+          const commit = async () => {
+            const novo = input.value.trim();
+            // salva apenas se mudou
+            if (novo !== valorAtual) {
+              await onSave(novo);
+              valorAtual = novo;
+            }
+    
+            // recria o span apenas nesse lugar, sem recarregar tudo
+            const novoSpan = criarSpan();
+            input.replaceWith(novoSpan);
+          };
+    
+          input.addEventListener("blur", commit);
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") input.blur();
+          });
+    
+          span.replaceWith(input);
+          setTimeout(() => input.focus(), 0);
         });
-
-        span.replaceWith(input);
-        setTimeout(() => input.focus(), 0);
-      });
-
-      return span;
+    
+        return span;
+      }
+    
+      return criarSpan();
     }
+
 
     // ---------- Banco de dados via API (/api/projetos) ----------
 
