@@ -422,8 +422,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               state.forEach((opc, idx) => {
                 const linhaOpt = document.createElement("div");
                 linhaOpt.className = "opcao-row";
-
-                // ordem das opções
+            
                 const btnUpOpc = document.createElement("button");
                 btnUpOpc.textContent = "▲";
                 btnUpOpc.className = "botaoMover";
@@ -434,7 +433,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     renderOpcoes();
                   }
                 });
-
+            
                 const btnDownOpc = document.createElement("button");
                 btnDownOpc.textContent = "▼";
                 btnDownOpc.className = "botaoMover";
@@ -445,14 +444,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                     renderOpcoes();
                   }
                 });
-
+            
                 linhaOpt.appendChild(btnUpOpc);
                 linhaOpt.appendChild(btnDownOpc);
-
+            
                 const n = document.createElement("span");
                 n.textContent = idx + 1 + ".";
                 n.style.width = "18px";
-
+            
                 const spanOpt = makeEditableSpan({
                   text: opc,
                   placeholder: "Clique para editar opção",
@@ -463,12 +462,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                   }
                 });
                 spanOpt.style.flex = "1";
-
+            
                 linhaOpt.appendChild(n);
                 linhaOpt.appendChild(spanOpt);
+            
+                // 👇 NOVO: botão para excluir opção
+                const btnExcluirOpc = document.createElement("button");
+                btnExcluirOpc.textContent = "✕";
+                btnExcluirOpc.className = "botaoPadrao botaoPerigo";
+                btnExcluirOpc.style.marginLeft = "4px";
+                btnExcluirOpc.addEventListener("click", async (e) => {
+                  e.preventDefault();
+                  state.splice(idx, 1); // remove a opção desse índice
+                  await salvarOpcoes(projetoId, templateId, secao.idSecao, item.idItem, state);
+                  renderOpcoes();
+                });
+            
+                linhaOpt.appendChild(btnExcluirOpc);
+            
                 listaOpcoes.appendChild(linhaOpt);
               });
-
+            
               const addRow = document.createElement("div");
               const btnAdd = document.createElement("button");
               btnAdd.textContent = "Adicionar opção";
@@ -481,6 +495,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               addRow.appendChild(btnAdd);
               listaOpcoes.appendChild(addRow);
             }
+            
             renderOpcoes();
           }
 
