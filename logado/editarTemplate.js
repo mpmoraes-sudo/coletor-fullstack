@@ -240,33 +240,28 @@ document.addEventListener("DOMContentLoaded", async () => {
         header.className = "secao-header";
 
         const tituloWrap = document.createElement("div");
-        const titulo = document.createElement("span");
-        titulo.textContent = secao.titulo || "Clique para renomear o titulo da seção";
-        titulo.style.fontWeight = "bold";
-        titulo.style.cursor = "pointer";
 
-        titulo.addEventListener("click", () => {
-          const input = document.createElement("input");
-          input.type = "text";
-          input.value = secao.titulo || "";
-          input.style.fontWeight = "bold";
-          input.style.width = "100%";
-          input.addEventListener("blur", async () => {
-            const novoTitulo = input.value.trim() || "Clique para renomear o titulo da seção";
-            try {
-              await setCampoSecao(projetoId, templateId, secao.idSecao, "titulo", novoTitulo);
-            } catch (err) {
-              console.error("Erro ao salvar título:", err);
-            }
-            await renderizarTudo();
-          });
-          input.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") input.blur();
-          });
-          tituloWrap.replaceChild(input, titulo);
-          input.focus();
+        // usamos o mesmo makeEditableSpan que já está funcionando nas opções --------------
+        const tituloSecao = makeEditableSpan({
+          text: secao.titulo,
+          placeholder: "Clique para renomear o titulo",
+          className: "titulo-secao",
+          onSave: async (novo) => {
+            const novoTitulo = novo || "Clique para renomear o titulo";
+        
+            // atualiza o objeto em memória (só pra refletir imediatamente)
+            secao.titulo = novoTitulo;
+        
+            // salva no backend
+            await setCampoSecao(projetoId, templateId, secao.idSecao, "titulo", novoTitulo);
+          }
         });
-        tituloWrap.appendChild(titulo);
+        
+        // mantém o negrito como antes
+        tituloSecao.style.fontWeight = "bold";
+        
+        tituloWrap.appendChild(tituloSecao);
+
 
         const controles = document.createElement("div");
         controles.style.display = "flex";
