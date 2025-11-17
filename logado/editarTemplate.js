@@ -241,7 +241,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const tituloWrap = document.createElement("div");
         const titulo = document.createElement("span");
-        titulo.textContent = secao.titulo || "Clique para renomear o titulo";
+        titulo.textContent = secao.titulo || "Clique para renomear o titulo da seção";
         titulo.style.fontWeight = "bold";
         titulo.style.cursor = "pointer";
 
@@ -252,7 +252,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           input.style.fontWeight = "bold";
           input.style.width = "100%";
           input.addEventListener("blur", async () => {
-            const novoTitulo = input.value.trim() || "Clique para renomear o titulo";
+            const novoTitulo = input.value.trim() || "Clique para renomear o titulo da seção";
             try {
               await setCampoSecao(projetoId, templateId, secao.idSecao, "titulo", novoTitulo);
             } catch (err) {
