@@ -305,38 +305,68 @@ export default async function handler(req, res) {
 
     // ========== DELETAR ITEM ==========
     if (acao === "deletarItem") {
-      if (!idProjeto || !templateId || !secaoId || !itemId) {
+      if (!idProjeto || !templateId || !secaoId || !itemId || !emailUsuario) {
         return res.status(400).json({ error: "Campos obrigatórios ausentes." });
       }
-
+    
       const projeto = await getProjetoById(db, idProjeto);
       if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
-
+    
       const meu = projeto.membros.find(m => m.email === emailUsuario);
       if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
         return res.status(403).json({ error: "Apenas editores podem remover itens." });
       }
-
+    
+      // acha o template dentro do projeto
+      const idxTemplate = (projeto.templates || []).findIndex(
+        t => String(t._id) === String(templateId)
+      );
+      if (idxTemplate === -1) {
+        return res.status(404).json({ error: "Template não encontrado neste projeto." });
+      }
+    
+      const template = projeto.templates[idxTemplate];
+    
+      // acha a seção dentro do template
+      const idxSecao = (template.secoes || []).findIndex(
+        s => s.idSecao === secaoId
+      );
+      if (idxSecao === -1) {
+        return res.status(404).json({ error: "Seção não encontrada." });
+      }
+    
+      const secao = template.secoes[idxSecao];
+      const antes = (secao.itens || []).length;
+    
+      secao.itens = (secao.itens || []).filter(
+        it => String(it.idItem) !== String(itemId)
+      );
+    
+      if (secao.itens.length === antes) {
+        return res.status(404).json({ error: "Item não encontrado." });
+      }
+    
+      // salva de volta no array de templates
+      template.secoes[idxSecao] = secao;
+      projeto.templates[idxTemplate] = template;
+    
       const result = await colecao.updateOne(
-        { _id: new ObjectId(idProjeto) },
+        { _id: projeto._id },
         {
-          $pull: { "templates.$[t].secoes.$[s].itens": { idItem } },
-          $set: { atualizadoEm: new Date() }
-        },
-        {
-          arrayFilters: [
-            { "t._id": new ObjectId(templateId) },
-            { "s.idSecao": secaoId }
-          ]
+          $set: {
+            templates: projeto.templates,
+            atualizadoEm: new Date()
+          }
         }
       );
-
+    
       if (!result.acknowledged || result.matchedCount === 0) {
         return res.status(500).json({ error: "Falha ao remover item." });
       }
-
-      return res.json({ success: true });
+    
+      return res.json({ success: true, message: "Item removido com sucesso." });
     }
+
 
     // ========== ATUALIZAR ORDEM DOS ITENS DE UMA SEÇÃO ==========
     if (acao === "atualizarOrdemItens") {
