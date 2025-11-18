@@ -522,6 +522,13 @@ button:hover {
 }
 
 
+.lista-templates .link-visualizar {
+  color: #2e6eb5;
+}
+
+.lista-templates .link-visualizar:hover {
+  text-decoration: underline;
+}
 
 
 
