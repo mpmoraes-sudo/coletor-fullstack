@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Utilizar Template</title>
+  <!-- CSS unificado -->
+  <link rel="stylesheet" href="../styles.css" />
+  <script defer src="utilizarTemplates.js"></script>
+</head>
+
+<body>
+  <div class="header">
+    <span id="usuarioLogado">Validando sessão...</span>
+    <button id="botaoHome" class="botaoPadrao">Home</button>
+    <button id="botaoLogout" class="botaoPadrao">Sair</button>
+  </div>
+
+  <div class="page-container">
+    <div class="card">
+      <div class="container escondido">
+        <h1>Módulo de Utilização</h1>
+        <h2 id="nomeProjeto">—</h2>
+        <h3 id="nomeTemplate">—</h3>
+
+        <div id="formularioContainer" style="margin-top: 20px;"></div>
+
+        <button id="btnCopiarResultado" class="botaoPadrao" style="margin-top: 30px;">
+          📋 Copiar conteúdo final
+        </button>
+        <p id="avisoCopiado"
+           style="color: green; margin-top: 10px; display: none;">
+          ✅ Copiado para a área de transferência!
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
