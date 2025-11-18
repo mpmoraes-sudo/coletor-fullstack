@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     document.getElementById("btnModuloUtilizacao").addEventListener("click", () => {
-      window.location.href = "utilizarTemplates.html";
+      window.location.href = "ModuloDeUtilizacao.html";
     });
 
     // ===== logout =====
