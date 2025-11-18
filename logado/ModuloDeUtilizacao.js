@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     document.getElementById("botaoHome")?.addEventListener("click", () => {
-      window.location.href = "selecaoDeModulos.html";
+      window.location.href = "SelecaoDeModulos.html";
     });
 
     // Carrega projetos para utilização
