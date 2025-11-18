@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Utilização de Templates</title>
+    <!-- CSS unificado -->
+    <link rel="stylesheet" href="../styles.css" />
+    <script defer src="ModuloDeUtilizacao.js"></script>
+  </head>
+
+  <body>
+    <div class="header">
+      <span id="usuarioLogado">Validando sessão...</span>
+      <button id="botaoHome" class="botaoPadrao">Home</button>
+      <button id="botaoLogout" class="botaoPadrao">Sair</button>
+    </div>
+
+    <div class="page-container">
+      <div class="card">
+        <div class="container escondido">
+          <h1>Utilização de Templates</h1>
+
+          <table id="tabelaProjetos">
+            <thead>
+              <tr>
+                <th style="width: 28px;"></th>
+                <th>Projetos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Projetos serão inseridos aqui via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
