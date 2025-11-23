@@ -49,7 +49,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // UI header
     const usuarioLogadoEl = document.getElementById("usuarioLogado");
     if (usuarioLogadoEl) usuarioLogadoEl.textContent = `Logado como: ${emailUsuario}`;
-    document.querySelector(".container")?.classList.remove("escondido");
 
     document.getElementById("botaoLogout")?.addEventListener("click", () => {
       localStorage.removeItem("tokenDeSessao");
@@ -610,10 +609,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
+    //Renderizar tudo que foi definido do DOMContent
     await renderizarTudo();
+    // some com a tela de loading e mostra a interface
+    if (telaCarregando) telaCarregando.style.display = "none";
+    if (container) container.classList.remove("escondido");
+    //Tela estará pronta e apresentada, após findar o carregamento.
+    
   } catch (err) {
     console.error("Erro editarTemplate:", err);
     alert("Erro ao carregar dados do template.");
+    if (telaCarregando) telaCarregando.style.display = "none"; 
     localStorage.removeItem("tokenDeSessao");
     window.location.href = "../index.html";
   }
