@@ -19,6 +19,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  // >>> NOVO: pegar referências do overlay e da container para MOSTRAR O LOADING
+  const telaCarregando = document.getElementById("telaCarregando");
+  const container = document.querySelector(".container");
+
+  // ao entrar na página, mostra o loading e esconde o conteúdo PARA PODER MOSTRAR O LOADING
+  if (telaCarregando) telaCarregando.style.display = "flex";
+  if (container) container.classList.add("escondido");
+  // <<< FIM BLOCO NOVO PARA LOADING
+
+  
   let emailUsuario;
   let templateCarregado = null;
 
@@ -44,9 +54,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (usuarioLogadoEl) {
       usuarioLogadoEl.textContent = `Logado como: ${emailUsuario}`;
     }
-
-    document.querySelector(".container")?.classList.remove("escondido");
-
+    
     document.getElementById("botaoLogout")?.addEventListener("click", () => {
       localStorage.removeItem("tokenDeSessao");
       window.location.href = "../index.html";
@@ -70,9 +78,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       copiarResultado(templateCarregado);
     });
 
+    // >>> NOVO: some com a tela de carregamento e mostra o conteúdo, AO FIM DO LOADING
+    if (telaCarregando) telaCarregando.style.display = "none";
+    if (container) container.classList.remove("escondido");
+    // <<< FIM BLOCO NOVO COM O FIM DO LOADING
+
+
+    
   } catch (err) {
     console.error("Erro ao carregar template:", err);
     alert("Erro ao carregar template.");
+    if (telaCarregando) telaCarregando.style.display = "none"; // <<< NOVO PARA LOADING
     localStorage.removeItem("tokenDeSessao");
     window.location.href = "../index.html";
   }
