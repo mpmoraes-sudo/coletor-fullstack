@@ -361,7 +361,7 @@ button:hover {
 }
 
 
-/* ESSA PARTE PARA BAIXO SOMENTE PARA O EDITAR TEMPLATES:                    ------------------------------------------------------- */
+/* ESSA PARTE PARA BAIXO COMEÇA PARA O EDITAR TEMPLATES:                    ------------------------------------------------------- */
 
 .secao {
   border: 1px solid #e0e0e0;
@@ -378,12 +378,46 @@ button:hover {
   margin-bottom: 8px;
 }
 
+.secao-footer {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end; /* ou center, se preferir o + centralizado */
+}
+
+/* Botão circular de adicionar item */
+.botao-add-item-circular {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background-color: #2e6eb5;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.botao-add-item-circular:hover {
+  background-color: #245e9d;
+  transform: translateY(-1px);
+}
+
+.botao-add-item-circular:active {
+  background-color: #1d4d84;
+  transform: translateY(0);
+}
+
 .lista-itens {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-top: 6px;
 }
+/* Fim do Botão circular de adicionar item */
 
 .item-row {
   display: flex;
