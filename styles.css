@@ -381,7 +381,7 @@ button:hover {
 .secao-footer {
   margin-top: 8px;
   display: flex;
-  justify-content: flex-end; /* ou center, se preferir o + centralizado */
+  justify-content: center;
 }
 
 /* Botão circular de adicionar item */
