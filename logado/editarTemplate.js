@@ -17,6 +17,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  //Define as variavies para tela carregando.
+  const telaCarregando = document.getElementById("telaCarregando");
+  const container = document.querySelector(".container");
+
+  // garante que, ao carregar a página, a tela de loading apareça
+  if (telaCarregando) telaCarregando.style.display = "flex";
+  if (container) container.classList.add("escondido");
+
+
+  
   let emailUsuario;
 
   try {
