@@ -499,7 +499,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 e.preventDefault();
                 state.push("");
                 // salva imediatamente as opções (incluindo a nova vazia) ------------------------------------------------------------------------------------------------------------
-                await salvarOpcoes(projetoId, templateId, secao.idSecao, item.idItem, state);
+                salvarOpcoes(projetoId, templateId, secao.idSecao, item.idItem, state);
                 renderOpcoes();
               });
               addRow.appendChild(btnAdd);
