@@ -304,10 +304,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         controles.appendChild(btnMoverCima);
         controles.appendChild(btnMoverBaixo);
 
-        const btnAddItem = document.createElement("button");
-        btnAddItem.className = "botaoPadrao";
-        btnAddItem.textContent = "+ Adicionar item";
-
         const btnRemoverSecao = document.createElement("button");
         btnRemoverSecao.className = "botaoPadrao botaoPerigo";
         btnRemoverSecao.textContent = "Excluir seção";
@@ -353,6 +349,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
           info.appendChild(seletorTipo);
 
+          //ADICIONEI O BTN AQUI NÃO SEI SE VAI FICAR OK
+          const btnAddItem = document.createElement("button");
+          btnAddItem.className = "botao-add-item-circular";
+          btnAddItem.textContent = "+";
+          //ADICIONEI O BTN AQUI NÃO SEI SE VAI FICAR OK
+
+          
           seletorTipo.addEventListener("change", async () => {
             try {
               await setCampoItem(projetoId, templateId, secao.idSecao, item.idItem, "tipo", seletorTipo.value);
@@ -564,7 +567,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
 
         sec.appendChild(listaItens);
+        
+        // >>> NOVO: rodapé da seção com o botão circular +
+        const secaoFooter = document.createElement("div");
+        secaoFooter.className = "secao-footer";
+        secaoFooter.appendChild(btnAddItem);
+        sec.appendChild(secaoFooter);
+        // <<< FIM BLOCO NOVO
 
+        
         btnAddItem.addEventListener("click", async () => {
           try {
             const novo = await adicionarItemInicial(projetoId, templateId, secao.idSecao, "textoFixo");
