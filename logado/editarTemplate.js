@@ -308,11 +308,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         btnRemoverSecao.className = "botaoPadrao botaoPerigo";
         btnRemoverSecao.textContent = "Excluir seção";
 
-         //ADICIONEI O BTN AQUI NÃO SEI SE VAI FICAR OK
+        //BOTAO DE + DO FIM DA SECAO
         const btnAddItem = document.createElement("button");
         btnAddItem.className = "botao-add-item-circular";
         btnAddItem.textContent = "+";
-        //ADICIONEI O BTN AQUI NÃO SEI SE VAI FICAR OK
+        //BOTAO DE + DO FIM DA SECAO
         
         controles.appendChild(btnAddItem);
         controles.appendChild(btnRemoverSecao);
@@ -423,7 +423,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             listaOpcoes.className = "lista-opcoes";
             info.appendChild(listaOpcoes);
 
-            let state = (item.opcoes || []).filter((op) => op && op.trim() !== "");
+            let state = Array.isArray(item.opcoes) ? [...item.opcoes] : [];
 
             function renderOpcoes() {
               listaOpcoes.innerHTML = "";
