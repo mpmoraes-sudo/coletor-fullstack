@@ -268,22 +268,23 @@ export default async function handler(req, res) {
       if (!idProjeto || !templateId || !secaoId || !itemId) {
         return res.status(400).json({ error: "Campos obrigatórios ausentes." });
       }
-
+    
       const projeto = await getProjetoById(db, idProjeto);
       if (!projeto) return res.status(404).json({ error: "Projeto não encontrado." });
-
+    
       const meu = projeto.membros.find(m => m.email === emailUsuario);
       if (!meu || meu.permissao !== "editor" || meu.conviteAceito !== true) {
         return res.status(403).json({ error: "Apenas editores podem editar opções." });
       }
-
-      const limpas = (opcoes || []).filter(op => op && op.trim() !== "");
-
+    
+      // 🚫 não limpamos mais as opções vazias automaticamente
+      const novasOpcoes = Array.isArray(opcoes) ? opcoes : [];
+    
       const result = await colecao.updateOne(
         { _id: new ObjectId(idProjeto) },
         {
           $set: {
-            "templates.$[t].secoes.$[s].itens.$[i].opcoes": limpas,
+            "templates.$[t].secoes.$[s].itens.$[i].opcoes": novasOpcoes,
             atualizadoEm: new Date()
           }
         },
@@ -295,14 +296,15 @@ export default async function handler(req, res) {
           ]
         }
       );
-
+    
       if (!result.acknowledged || result.matchedCount === 0) {
         return res.status(500).json({ error: "Falha ao salvar opções." });
       }
-
+    
       return res.json({ success: true });
     }
 
+  
     // ========== DELETAR ITEM ==========
     if (acao === "deletarItem") {
       if (!idProjeto || !templateId || !secaoId || !itemId || !emailUsuario) {
