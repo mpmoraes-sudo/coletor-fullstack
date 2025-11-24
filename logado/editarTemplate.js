@@ -250,7 +250,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const tituloWrap = document.createElement("div");
 
-        // usamos o mesmo makeEditableSpan que já está funcionando nas opções --------------
+        // usamos o mesmo makeEditableSpan que já está funcionando nas opções ---
         const tituloSecao = makeEditableSpan({
           text: secao.titulo,
           placeholder: "Clique para renomear o titulo",
@@ -498,8 +498,8 @@ document.addEventListener("DOMContentLoaded", async () => {
               btnAdd.addEventListener("click", (e) => {
                 e.preventDefault();
                 state.push("");
-                // salva imediatamente as opções (incluindo a nova vazia) ----------------------------------
-                await salvarOpcoes(projetoId, templateId, secao.idSecao, item.idItem, state);
+                // salva imediatamente as opções (incluindo a nova vazia) --------------------------------------------------------------------------------------------
+                //await salvarOpcoes(projetoId, templateId, secao.idSecao, item.idItem, state);
                 renderOpcoes();
               });
               addRow.appendChild(btnAdd);
