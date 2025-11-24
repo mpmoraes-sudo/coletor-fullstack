@@ -315,6 +315,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         header.appendChild(controles);
         sec.appendChild(header);
 
+        //ADICIONEI O BTN AQUI NÃO SEI SE VAI FICAR OK
+        const btnAddItem = document.createElement("button");
+        btnAddItem.className = "botao-add-item-circular";
+        btnAddItem.textContent = "+";
+        //ADICIONEI O BTN AQUI NÃO SEI SE VAI FICAR OK
+        
         // lista de itens
         const listaItens = document.createElement("div");
         listaItens.className = "lista-itens";
@@ -348,13 +354,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             seletorTipo.appendChild(opt);
           });
           info.appendChild(seletorTipo);
-
-          //ADICIONEI O BTN AQUI NÃO SEI SE VAI FICAR OK
-          const btnAddItem = document.createElement("button");
-          btnAddItem.className = "botao-add-item-circular";
-          btnAddItem.textContent = "+";
-          //ADICIONEI O BTN AQUI NÃO SEI SE VAI FICAR OK
-
           
           seletorTipo.addEventListener("change", async () => {
             try {
