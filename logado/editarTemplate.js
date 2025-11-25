@@ -276,6 +276,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         controles.style.display = "flex";
         controles.style.gap = "8px";
 
+        // NOVO BOTAO PARA CONTEUDO RECORRENTE =======================================================================================================================
+        const btnEscalavel = document.createElement("button");
+        btnEscalavel.className = "botao-escalavel";
+        btnEscalavel.innerHTML = '<span class="icone-stack">☰</span> Conteúdo escalável';
+        btnEscalavel.title = "Marcar esta seção como conteúdo escalável";
+      
+        // se a seção já tiver sido marcada antes, mostramos como ativo
+        if (secao.escalavel) {
+          btnEscalavel.classList.add("ativo");
+        }
+        // NOVO BOTAO PARA CONTEUDO RECORRENTE =======================================================================================================================
+        
         // botões para mover seção
         const btnMoverCima = document.createElement("button");
         btnMoverCima.textContent = "▲";
@@ -301,6 +313,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
         });
 
+        controles.appendChild(btnEscalavel);  ///////// NOVO BOTAO PARA OS CONTEUDOS ESCALAVEIS
         controles.appendChild(btnMoverCima);
         controles.appendChild(btnMoverBaixo);
 
@@ -577,7 +590,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         secaoFooter.appendChild(btnAddItem);
         sec.appendChild(secaoFooter);
         // <<< FIM BLOCO NOVO
-
+        //////////////////////////////////////// INICIA A FUNÇÃO PARA O BOTAO DE ESCALAVEL
+        btnEscalavel.addEventListener("click", async () => {
+        const novoValor = !Boolean(secao.escalavel);
+        secao.escalavel = novoValor;
+        btnEscalavel.classList.toggle("ativo", novoValor);
+        await setCampoSecao(projetoId, templateId, secao.idSecao, "escalavel", novoValor);
+      });
+        //////////////////////////////////////// FIM DA FUNÇÃO PARA O BOTAO DE ESCALAVEL
         
         btnAddItem.addEventListener("click", async () => {
           try {
@@ -601,6 +621,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("Erro deletar secao:", e);
           }
         });
+
+        
 
         lista.appendChild(sec);
       });
