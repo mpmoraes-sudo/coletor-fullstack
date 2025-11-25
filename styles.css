@@ -609,5 +609,29 @@ button:hover {
   }
 }
 
+/* Botão "Conteúdo escalável" no header da seção */
+.botao-escalavel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: #e0e7ff;     /* azul bem clarinho */
+  color: #1e3a8a;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.botao-escalavel .icone-stack {
+  font-size: 14px;
+}
+
+/* Estado ativo (seção marcada como escalável) */
+.botao-escalavel.ativo {
+  background-color: #2e6eb5;     /* azul padrão */
+  color: #ffffff;
+}
+
 
 
