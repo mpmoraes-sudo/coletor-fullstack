@@ -185,16 +185,33 @@ function montarFormulario(template) {
       const divSecao = document.createElement("div");
       divSecao.style.marginBottom = "16px";
 
-      const titulo = document.createElement("h4");
-      let tituloTexto = (secao.titulo || "").toUpperCase();
-      if (escalavel) {
-        // ex.: "VISITA DE SEGUIMENTO #2"
-        tituloTexto += ` #${occ}`;
+       if (escalavel) {
+      // Título da seção aparece apenas UMA vez, antes da primeira ocorrência
+      if (occ === 1) {
+        const tituloPrincipal = document.createElement("h4");
+        tituloPrincipal.textContent = (secao.titulo || "").toUpperCase();
+        tituloPrincipal.className = "titulo-secao";
+        blocoSecao.appendChild(tituloPrincipal);
       }
-      titulo.textContent = tituloTexto;
+  
+      // Espaçamento extra entre #1, #2, #3...
+      if (occ > 1) {
+        divSecao.style.marginTop = "16px";
+      }
+  
+      // Linha com #1, #2, #3...
+      const subTitulo = document.createElement("div");
+      subTitulo.textContent = `#${occ}`;
+      subTitulo.className = "subtitulo-ocorrencia";
+      divSecao.appendChild(subTitulo);
+      } else {
+      // Seção NÃO escalável: título normal como antes
+      const titulo = document.createElement("h4");
+      titulo.textContent = (secao.titulo || "").toUpperCase();
       titulo.className = "titulo-secao";
       divSecao.appendChild(titulo);
-
+      }
+  
       const respostasSecao =
         (respostas[secaoId] && respostas[secaoId][occ]) || {};
 
