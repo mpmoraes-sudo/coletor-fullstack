@@ -446,20 +446,56 @@ function copiarResultado(template) {
       ? (ocorrenciasPorSecao[secaoId] || 1)
       : 1;
 
-    for (let occ = 1; occ <= totalOcorrencias; occ++) {
-      const respostasSecao =
-        (respostas[secaoId] && respostas[secaoId][occ]) || {};
+    const tituloUpper = (secao.titulo || "").toUpperCase();
 
-      // Título da seção
-      textoFinal += `${(secao.titulo || "").toUpperCase()}`;
-      if (escalavel) {
-        textoFinal += ` #${occ}`;
-      }
-      textoFinal += "\n";
+    if (!escalavel) {
+      // Seção normal: título + conteúdo (como antes, sem #)
+      const respostasSecao =
+        (respostas[secaoId] && respostas[secaoId][1]) || {};
+  
+      textoFinal += `${tituloUpper}\n`;
 
       (secao.itens || []).forEach((item) => {
         const resp = respostasSecao[item.idItem];
 
+        if (item.tipo === "textoFixo") {
+          textoFinal += `${item.conteudo || ""}\n\n`;
+        } else if (item.tipo === "perguntaSubjetiva") {
+          textoFinal += `${item.pergunta || ""} ${resp || ""}\n\n`;
+        } else if (item.tipo === "perguntaCategorica") {
+          textoFinal += `${item.pergunta || ""} ${resp || ""}\n\n`;
+        } else if (item.tipo === "perguntaMultipla") {
+          textoFinal += `${item.pergunta || ""}\n`;
+          if (Array.isArray(resp)) {
+            resp.forEach((opc) => {
+              textoFinal += `( x ) ${opc}\n`;
+            });
+          }
+          textoFinal += "\n";
+        }
+      });
+  
+      return; // pula pro próximo secao
+    }
+  
+    // Seção ESCALÁVEL
+    textoFinal += `${tituloUpper}\n`;
+  
+    for (let occ = 1; occ <= totalOcorrencias; occ++) {
+      const respostasSecao =
+        (respostas[secaoId] && respostas[secaoId][occ]) || {};
+  
+      // Linha vazia antes das ocorrências 2, 3, 4...
+      if (occ > 1) {
+        textoFinal += "\n";
+      }
+  
+      // Linha com #1, #2, #3...
+      textoFinal += `#${occ}\n`;
+  
+      (secao.itens || []).forEach((item) => {
+        const resp = respostasSecao[item.idItem];
+  
         if (item.tipo === "textoFixo") {
           textoFinal += `${item.conteudo || ""}\n\n`;
         } else if (item.tipo === "perguntaSubjetiva") {
