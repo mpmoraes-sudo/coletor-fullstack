@@ -1,5 +1,16 @@
 // utilizarTemplates.js
-// Módulo de utilização dos templates (somente leitura + preenchimento e cópia)
+// Módulo de utilização dos templates (leitura + preenchimento + cópia),
+// agora com suporte a seções "escaláveis" (secao.escalavel === true).
+
+// respostas[secaoId][ocorrencia][itemId] = valor
+const respostas = {};
+// ocorrenciasPorSecao[secaoId] = quantidade de vezes que a seção será repetida
+const ocorrenciasPorSecao = {};
+
+function resetEstadoFormulario() {
+  for (const k in respostas) delete respostas[k];
+  for (const k in ocorrenciasPorSecao) delete ocorrenciasPorSecao[k];
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
@@ -8,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!projetoId || !templateId) {
     alert("Projeto ou Template não informados.");
-    window.location.href = "SelecaoDeModulos.html";
+    window.location.href = "selecaoDeModulos.html";
     return;
   }
 
@@ -19,16 +30,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // >>> NOVO: pegar referências do overlay e da container para MOSTRAR O LOADING
   const telaCarregando = document.getElementById("telaCarregando");
   const container = document.querySelector(".container");
 
-  // ao entrar na página, mostra o loading e esconde o conteúdo PARA PODER MOSTRAR O LOADING
   if (telaCarregando) telaCarregando.style.display = "flex";
   if (container) container.classList.add("escondido");
-  // <<< FIM BLOCO NOVO PARA LOADING
 
-  
   let emailUsuario;
   let templateCarregado = null;
 
@@ -54,41 +61,42 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (usuarioLogadoEl) {
       usuarioLogadoEl.textContent = `Logado como: ${emailUsuario}`;
     }
-    
+
     document.getElementById("botaoLogout")?.addEventListener("click", () => {
       localStorage.removeItem("tokenDeSessao");
       window.location.href = "../index.html";
     });
 
     document.getElementById("botaoHome")?.addEventListener("click", () => {
-      window.location.href = "SelecaoDeModulos.html";
+      window.location.href = "selecaoDeModulos.html";
     });
 
     // Carregar projeto + template
-    const { projeto, template } = await carregarProjetoETemplate(emailUsuario, projetoId, templateId);
+    const { projeto, template } = await carregarProjetoETemplate(
+      emailUsuario,
+      projetoId,
+      templateId
+    );
     templateCarregado = template;
 
     document.getElementById("nomeProjeto").textContent = `Projeto: ${projeto.nome}`;
     document.getElementById("nomeTemplate").textContent = `Template: ${template.nome}`;
 
-    montarFormulario(template);
+    // Estado inicial do formulário
+    resetEstadoFormulario();
+    montarFormulario(templateCarregado);
 
     // Copiar resultado final
     document.getElementById("btnCopiarResultado")?.addEventListener("click", () => {
       copiarResultado(templateCarregado);
     });
 
-    // >>> NOVO: some com a tela de carregamento e mostra o conteúdo, AO FIM DO LOADING
     if (telaCarregando) telaCarregando.style.display = "none";
     if (container) container.classList.remove("escondido");
-    // <<< FIM BLOCO NOVO COM O FIM DO LOADING
-
-
-    
   } catch (err) {
     console.error("Erro ao carregar template:", err);
     alert("Erro ao carregar template.");
-    if (telaCarregando) telaCarregando.style.display = "none"; // <<< NOVO PARA LOADING
+    if (telaCarregando) telaCarregando.style.display = "none";
     localStorage.removeItem("tokenDeSessao");
     window.location.href = "../index.html";
   }
@@ -146,179 +154,251 @@ async function carregarProjetoETemplate(emailUsuario, projetoId, templateId) {
   return { projeto, template };
 }
 
-// Armazenará as respostas do usuário em memória
-const respostas = {};
-
-// Monta o formulário de utilização a partir da estrutura do template
+// Monta o formulário de utilização a partir da estrutura do template,
+// respeitando seções "escaláveis" (secao.escalavel).
 function montarFormulario(template) {
   const container = document.getElementById("formularioContainer");
   if (!container) return;
 
   container.innerHTML = "";
-  Object.keys(respostas).forEach((k) => delete respostas[k]); // limpa estado anterior
 
   (template.secoes || []).forEach((secao) => {
-    const divSecao = document.createElement("div");
-    divSecao.style.marginBottom = "20px";
+    const secaoId = secao.idSecao || "";
 
-    const titulo = document.createElement("h4");
-    titulo.textContent = (secao.titulo || "").toUpperCase();
-    titulo.className = "titulo-secao";
-    divSecao.appendChild(titulo);
+    const escalavel = !!secao.escalavel;
 
-    (secao.itens || []).forEach((item) => {
-      const divItem = document.createElement("div");
-      divItem.className = "item-preenchimento";
+    // Se ainda não há registro de ocorrências desta seção, começa em 1
+    if (ocorrenciasPorSecao[secaoId] == null) {
+      ocorrenciasPorSecao[secaoId] = 1;
+    }
 
-      // Texto fixo: o usuário não edita nada
-      if (item.tipo === "textoFixo") {
-        const p = document.createElement("p");
-        p.textContent = item.conteudo || "";
-        divItem.appendChild(p);
+    const totalOcorrencias = escalavel
+      ? ocorrenciasPorSecao[secaoId]
+      : 1;
+
+    // Bloco que agrupa todas as ocorrências desta seção
+    const blocoSecao = document.createElement("div");
+    blocoSecao.className = escalavel ? "bloco-secao escalavel" : "bloco-secao";
+    blocoSecao.style.marginBottom = "24px";
+
+    for (let occ = 1; occ <= totalOcorrencias; occ++) {
+      const divSecao = document.createElement("div");
+      divSecao.style.marginBottom = "16px";
+
+      const titulo = document.createElement("h4");
+      let tituloTexto = (secao.titulo || "").toUpperCase();
+      if (escalavel) {
+        // ex.: "VISITA DE SEGUIMENTO #2"
+        tituloTexto += ` #${occ}`;
       }
+      titulo.textContent = tituloTexto;
+      titulo.className = "titulo-secao";
+      divSecao.appendChild(titulo);
 
-      // Pergunta subjetiva: texto livre
-      if (item.tipo === "perguntaSubjetiva") {
-        const label = document.createElement("label");
-        label.textContent = item.pergunta || "—";
+      const respostasSecao =
+        (respostas[secaoId] && respostas[secaoId][occ]) || {};
 
-        if (item.obrigatorio) {
-          const asterisco = document.createElement("span");
-          asterisco.textContent = " *";
-          asterisco.className = "asterisco-obrigatorio";
-          label.appendChild(asterisco);
+      (secao.itens || []).forEach((item) => {
+        const divItem = document.createElement("div");
+        divItem.className = "item-preenchimento";
+
+        // TEXTOS FIXOS
+        if (item.tipo === "textoFixo") {
+          const p = document.createElement("p");
+          p.textContent = item.conteudo || "";
+          divItem.appendChild(p);
         }
 
-        const input = document.createElement("input");
-        input.type = "text";
-        input.style.marginLeft = "6px";
-        input.style.width = "60%";
+        // PERGUNTA SUBJETIVA
+        if (item.tipo === "perguntaSubjetiva") {
+          const label = document.createElement("label");
+          label.textContent = item.pergunta || "—";
 
-        input.addEventListener("input", () => {
-          respostas[item.idItem] = input.value;
-        });
+          if (item.obrigatorio) {
+            const asterisco = document.createElement("span");
+            asterisco.textContent = " *";
+            asterisco.className = "asterisco-obrigatorio";
+            label.appendChild(asterisco);
+          }
 
-        divItem.appendChild(label);
-        divItem.appendChild(input);
-      }
+          const input = document.createElement("input");
+          input.type = "text";
+          input.style.marginLeft = "6px";
+          input.style.width = "60%";
 
-      // Pergunta categórica: select (uma opção)
-      if (item.tipo === "perguntaCategorica") {
-        const label = document.createElement("label");
-        label.textContent = item.pergunta || "—";
+          input.value = respostasSecao[item.idItem] || "";
 
-        if (item.obrigatorio) {
-          const asterisco = document.createElement("span");
-          asterisco.textContent = " *";
-          asterisco.className = "asterisco-obrigatorio";
-          label.appendChild(asterisco);
-        }
-
-        divItem.appendChild(label);
-
-        const select = document.createElement("select");
-        select.style.marginLeft = "6px";
-
-        // opção vazia para forçar escolha explícita
-        const optVazio = document.createElement("option");
-        optVazio.value = "";
-        optVazio.textContent = "-- selecione --";
-        select.appendChild(optVazio);
-
-        (item.opcoes || []).forEach((opc) => {
-          const opt = document.createElement("option");
-          opt.value = opc;
-          opt.textContent = opc;
-          select.appendChild(opt);
-        });
-
-        select.addEventListener("change", () => {
-          respostas[item.idItem] = select.value;
-        });
-
-        divItem.appendChild(select);
-      }
-
-      // Pergunta múltipla: checkboxes
-      if (item.tipo === "perguntaMultipla") {
-        const pergunta = document.createElement("div");
-        pergunta.textContent = item.pergunta || "—";
-        pergunta.className = "item-pergunta";
-
-        if (item.obrigatorio) {
-          const asterisco = document.createElement("span");
-          asterisco.textContent = " *";
-          asterisco.className = "asterisco-obrigatorio";
-          pergunta.appendChild(asterisco);
-        }
-
-        divItem.appendChild(pergunta);
-
-        const selecoes = [];
-
-        (item.opcoes || []).forEach((opc) => {
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.value = opc;
-          checkbox.style.marginRight = "4px";
-
-          const lbl = document.createElement("label");
-          lbl.style.display = "block";
-          lbl.style.marginLeft = "12px";
-          lbl.appendChild(checkbox);
-          lbl.appendChild(document.createTextNode(opc));
-
-          checkbox.addEventListener("change", () => {
-            const selecionados = selecoes
-              .filter((c) => c.checked)
-              .map((c) => c.value);
-            respostas[item.idItem] = selecionados;
+          input.addEventListener("input", () => {
+            if (!respostas[secaoId]) respostas[secaoId] = {};
+            if (!respostas[secaoId][occ]) respostas[secaoId][occ] = {};
+            respostas[secaoId][occ][item.idItem] = input.value;
           });
 
-          selecoes.push(checkbox);
-          divItem.appendChild(lbl);
-        });
-      }
+          divItem.appendChild(label);
+          divItem.appendChild(input);
+        }
 
-      divSecao.appendChild(divItem);
-    });
+        // PERGUNTA CATEGÓRICA (SELECT)
+        if (item.tipo === "perguntaCategorica") {
+          const label = document.createElement("label");
+          label.textContent = item.pergunta || "—";
 
-    container.appendChild(divSecao);
+          if (item.obrigatorio) {
+            const asterisco = document.createElement("span");
+            asterisco.textContent = " *";
+            asterisco.className = "asterisco-obrigatorio";
+            label.appendChild(asterisco);
+          }
+
+          const select = document.createElement("select");
+          select.style.marginLeft = "6px";
+
+          const optVazio = document.createElement("option");
+          optVazio.value = "";
+          optVazio.textContent = "-- selecione --";
+          select.appendChild(optVazio);
+
+          (item.opcoes || []).forEach((opc) => {
+            const opt = document.createElement("option");
+            opt.value = opc;
+            opt.textContent = opc;
+            select.appendChild(opt);
+          });
+
+          const valorAtual = respostasSecao[item.idItem] || "";
+          select.value = valorAtual;
+
+          select.addEventListener("change", () => {
+            if (!respostas[secaoId]) respostas[secaoId] = {};
+            if (!respostas[secaoId][occ]) respostas[secaoId][occ] = {};
+            respostas[secaoId][occ][item.idItem] = select.value;
+          });
+
+          divItem.appendChild(label);
+          divItem.appendChild(select);
+        }
+
+        // PERGUNTA MÚLTIPLA (CHECKBOXES)
+        if (item.tipo === "perguntaMultipla") {
+          const pergunta = document.createElement("div");
+          pergunta.textContent = item.pergunta || "—";
+          pergunta.className = "item-pergunta";
+
+          if (item.obrigatorio) {
+            const asterisco = document.createElement("span");
+            asterisco.textContent = " *";
+            asterisco.className = "asterisco-obrigatorio";
+            pergunta.appendChild(asterisco);
+          }
+
+          divItem.appendChild(pergunta);
+
+          const selecaoAtual = Array.isArray(respostasSecao[item.idItem])
+            ? respostasSecao[item.idItem]
+            : [];
+
+          const checkboxes = [];
+
+          (item.opcoes || []).forEach((opc) => {
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = opc;
+            checkbox.style.marginRight = "4px";
+            checkbox.checked = selecaoAtual.includes(opc);
+
+            const lbl = document.createElement("label");
+            lbl.style.display = "block";
+            lbl.style.marginLeft = "12px";
+            lbl.appendChild(checkbox);
+            lbl.appendChild(document.createTextNode(opc));
+
+            checkbox.addEventListener("change", () => {
+              const selecionados = checkboxes
+                .filter((c) => c.checked)
+                .map((c) => c.value);
+
+              if (!respostas[secaoId]) respostas[secaoId] = {};
+              if (!respostas[secaoId][occ]) respostas[secaoId][occ] = {};
+              respostas[secaoId][occ][item.idItem] = selecionados;
+            });
+
+            checkboxes.push(checkbox);
+            divItem.appendChild(lbl);
+          });
+        }
+
+        divSecao.appendChild(divItem);
+      });
+
+      blocoSecao.appendChild(divSecao);
+    }
+
+    // Botão para adicionar nova ocorrência, se seção for escalável
+    if (escalavel) {
+      const controls = document.createElement("div");
+      controls.style.marginTop = "4px";
+
+      const btnAddOcorrencia = document.createElement("button");
+      btnAddOcorrencia.textContent = "Adicionar ocorrência";
+      btnAddOcorrencia.className = "botaoPadrao";
+
+      btnAddOcorrencia.addEventListener("click", (e) => {
+        e.preventDefault();
+        const atual = ocorrenciasPorSecao[secaoId] || 1;
+        ocorrenciasPorSecao[secaoId] = atual + 1;
+        montarFormulario(template);
+      });
+
+      controls.appendChild(btnAddOcorrencia);
+      blocoSecao.appendChild(controls);
+    }
+
+    container.appendChild(blocoSecao);
   });
 }
 
-// Valida campos obrigatórios antes de gerar o texto
+// Valida campos obrigatórios antes de gerar o texto,
+// levando em conta seções escaláveis (todas as ocorrências).
 function validarObrigatorios(template) {
   const faltando = [];
 
   (template.secoes || []).forEach((secao) => {
-    (secao.itens || []).forEach((item) => {
-      if (!item.obrigatorio) return;
+    const secaoId = secao.idSecao || "";
+    const escalavel = !!secao.escalavel;
+    const totalOcorrencias = escalavel
+      ? (ocorrenciasPorSecao[secaoId] || 1)
+      : 1;
 
-      const resp = respostas[item.idItem];
-      let ok = true;
+    for (let occ = 1; occ <= totalOcorrencias; occ++) {
+      const respostasSecao =
+        (respostas[secaoId] && respostas[secaoId][occ]) || {};
 
-      if (item.tipo === "perguntaSubjetiva") {
-        ok = !!(resp && String(resp).trim());
-      } else if (item.tipo === "perguntaCategorica") {
-        ok = !!(resp && String(resp).trim());
-      } else if (item.tipo === "perguntaMultipla") {
-        ok = Array.isArray(resp) && resp.length > 0;
-      } else {
-        // textoFixo não exige resposta do usuário
-        ok = true;
-      }
+      (secao.itens || []).forEach((item) => {
+        if (!item.obrigatorio) return;
 
-      if (!ok) {
-        faltando.push({ secao, item });
-      }
-    });
+        const resp = respostasSecao[item.idItem];
+        let ok = true;
+
+        if (item.tipo === "perguntaSubjetiva" || item.tipo === "perguntaCategorica") {
+          ok = !!(resp && String(resp).trim());
+        } else if (item.tipo === "perguntaMultipla") {
+          ok = Array.isArray(resp) && resp.length > 0;
+        } else {
+          ok = true; // textoFixo não exige resposta do usuário
+        }
+
+        if (!ok) {
+          faltando.push({ secao, item, ocorrencia: occ });
+        }
+      });
+    }
   });
 
   return faltando;
 }
 
 // Gera e copia o conteúdo final para a área de transferência
+// incluindo as repetições (#1, #2, ...) das seções escaláveis.
 function copiarResultado(template) {
   if (!template) return;
 
@@ -328,10 +408,13 @@ function copiarResultado(template) {
     const nomeSecao = primeiro.secao.titulo || "—";
     const textoPergunta =
       primeiro.item.pergunta || primeiro.item.conteudo || "—";
+    const sufixoOcc = primeiro.secao.escalavel
+      ? ` (#${primeiro.ocorrencia})`
+      : "";
 
     alert(
       "Por favor, preencha todos os campos obrigatórios antes de copiar.\n\n" +
-      `Seção: ${nomeSecao}\n` +
+      `Seção: ${nomeSecao}${sufixoOcc}\n` +
       `Campo: ${textoPergunta}`
     );
     return;
@@ -340,27 +423,43 @@ function copiarResultado(template) {
   let textoFinal = "";
 
   (template.secoes || []).forEach((secao) => {
-    textoFinal += `${(secao.titulo || "").toUpperCase()}\n`;
+    const secaoId = secao.idSecao || "";
+    const escalavel = !!secao.escalavel;
+    const totalOcorrencias = escalavel
+      ? (ocorrenciasPorSecao[secaoId] || 1)
+      : 1;
 
-    (secao.itens || []).forEach((item) => {
-      const resposta = respostas[item.idItem];
+    for (let occ = 1; occ <= totalOcorrencias; occ++) {
+      const respostasSecao =
+        (respostas[secaoId] && respostas[secaoId][occ]) || {};
 
-      if (item.tipo === "textoFixo") {
-        textoFinal += `${item.conteudo || ""}\n\n`;
-      } else if (item.tipo === "perguntaSubjetiva") {
-        textoFinal += `${item.pergunta || ""} ${resposta || ""}\n\n`;
-      } else if (item.tipo === "perguntaCategorica") {
-        textoFinal += `${item.pergunta || ""} ${resposta || ""}\n\n`;
-      } else if (item.tipo === "perguntaMultipla") {
-        textoFinal += `${item.pergunta || ""}\n`;
-        if (Array.isArray(resposta)) {
-          resposta.forEach((opc) => {
-            textoFinal += `( x ) ${opc}\n`;
-          });
-        }
-        textoFinal += "\n";
+      // Título da seção
+      textoFinal += `${(secao.titulo || "").toUpperCase()}`;
+      if (escalavel) {
+        textoFinal += ` #${occ}`;
       }
-    });
+      textoFinal += "\n";
+
+      (secao.itens || []).forEach((item) => {
+        const resp = respostasSecao[item.idItem];
+
+        if (item.tipo === "textoFixo") {
+          textoFinal += `${item.conteudo || ""}\n\n`;
+        } else if (item.tipo === "perguntaSubjetiva") {
+          textoFinal += `${item.pergunta || ""} ${resp || ""}\n\n`;
+        } else if (item.tipo === "perguntaCategorica") {
+          textoFinal += `${item.pergunta || ""} ${resp || ""}\n\n`;
+        } else if (item.tipo === "perguntaMultipla") {
+          textoFinal += `${item.pergunta || ""}\n`;
+          if (Array.isArray(resp)) {
+            resp.forEach((opc) => {
+              textoFinal += `( x ) ${opc}\n`;
+            });
+          }
+          textoFinal += "\n";
+        }
+      });
+    }
   });
 
   navigator.clipboard
