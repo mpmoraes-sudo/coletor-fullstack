@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!projetoId || !templateId) {
     alert("Projeto ou Template não informados.");
-    window.location.href = "selecaoDeModulos.html";
+    window.location.href = "ModuloDeUtilizacao.html";
     return;
   }
 
