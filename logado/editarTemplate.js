@@ -689,7 +689,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                   const btnObrig = document.createElement("button");
                   btnObrig.type = "button";
                   btnObrig.textContent = "*";
-                  btnObrig.className = "botaoPadrao asterisco-obrigatorio";
+                  btnObrig.className = "btn-asterisco";
                   if (cItem.obrigatorio) {
                     btnObrig.classList.add("ativo");
                   }
