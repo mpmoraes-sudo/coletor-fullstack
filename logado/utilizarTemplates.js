@@ -832,6 +832,9 @@ function gerarTextoCondicionalParaItem(secaoId, item, valorSelecionado, occ) {
     condEscalavel
   );
 
+  // só mostra #1, #2 etc se houver MAIS de uma ocorrência
+  const mostrarNumero = condEscalavel && totalCondOcc > 1;
+
   let texto = "";
   const indent = "     "; // 5 espaços
 
@@ -841,8 +844,7 @@ function gerarTextoCondicionalParaItem(secaoId, item, valorSelecionado, occ) {
         item.idItem
       ] || {})[cOcc]) || {};
 
-    if (condEscalavel) {
-      if (cOcc > 1) texto += "\n";
+    if (mostrarNumero) {
       texto += `${indent}#${cOcc}\n`;
     }
 
@@ -850,11 +852,14 @@ function gerarTextoCondicionalParaItem(secaoId, item, valorSelecionado, occ) {
       const r = respostasCondOcc[cItem.idItem];
 
       if (cItem.tipo === "textoFixo") {
-        texto += `${indent}${cItem.conteudo || ""}\n\n`;
-      } else if (cItem.tipo === "perguntaSubjetiva") {
-        texto += `${indent}${cItem.pergunta || ""} ${r || ""}\n\n`;
-      } else if (cItem.tipo === "perguntaCategorica") {
-        texto += `${indent}${cItem.pergunta || ""} ${r || ""}\n\n`;
+        if (cItem.conteudo && cItem.conteudo.trim() !== "") {
+          texto += `${indent}${cItem.conteudo}\n`;
+        }
+      } else if (
+        cItem.tipo === "perguntaSubjetiva" ||
+        cItem.tipo === "perguntaCategorica"
+      ) {
+        texto += `${indent}${cItem.pergunta || ""} ${r || ""}\n`;
       } else if (cItem.tipo === "perguntaMultipla") {
         texto += `${indent}${cItem.pergunta || ""}\n`;
         if (Array.isArray(r)) {
@@ -862,13 +867,13 @@ function gerarTextoCondicionalParaItem(secaoId, item, valorSelecionado, occ) {
             texto += `${indent}( x ) ${opc}\n`;
           });
         }
-        texto += "\n";
       }
     });
   }
 
   return texto;
 }
+
 
 
 
@@ -907,84 +912,86 @@ function copiarResultado(template) {
     const tituloUpper = (secao.titulo || "").toUpperCase();
 
     if (!escalavel) {
-      // Seção normal: título + conteúdo (como antes, sem #)
-      const respostasSecao =
-        (respostas[secaoId] && respostas[secaoId][1]) || {};
+    // TÍTULO DA SEÇÃO
+    textoFinal += secao.titulo.toUpperCase() + "\n";
   
-      textoFinal += `${tituloUpper}\n`;
-
-      (secao.itens || []).forEach((item) => {
-        const resp = respostasSecao[item.idItem];
-
-        if (item.tipo === "textoFixo") {
-          textoFinal += `${item.conteudo || ""}\n\n`;
-        } else if (item.tipo === "perguntaSubjetiva") {
-          textoFinal += `${item.pergunta || ""} ${resp || ""}\n\n`;
-        } else if (item.tipo === "perguntaCategorica") {
-            textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
-            textoFinal += gerarTextoCondicionalParaItem(
-              secaoId,
-              item,
-              resp,
-              1
-            );
-            textoFinal += "\n";
-        } else if (item.tipo === "perguntaMultipla") {
-          textoFinal += `${item.pergunta || ""}\n`;
-          if (Array.isArray(resp)) {
-            resp.forEach((opc) => {
-              textoFinal += `( x ) ${opc}\n`;
-            });
-          }
-          textoFinal += "\n";
+    (secao.itens || []).forEach((item) => {
+      const resp = respostasSecao[item.idItem];
+  
+      if (item.tipo === "textoFixo") {
+        if (item.conteudo && item.conteudo.trim() !== "") {
+          textoFinal += (item.conteudo || "") + "\n";
         }
-      });
-  
-      return; // pula pro próximo secao
-    }
-  
-    // Seção ESCALÁVEL
-    textoFinal += `${tituloUpper}\n`;
-  
-    for (let occ = 1; occ <= totalOcorrencias; occ++) {
-      const respostasSecao =
-        (respostas[secaoId] && respostas[secaoId][occ]) || {};
-  
-      // Linha vazia antes das ocorrências 2, 3, 4...
-      if (occ > 1) {
-        textoFinal += "\n";
+      } else if (item.tipo === "perguntaSubjetiva") {
+        textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
+      } else if (item.tipo === "perguntaCategorica") {
+        textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
+        textoFinal += gerarTextoCondicionalParaItem(
+          secaoId,
+          item,
+          resp,
+          1
+        );
+      } else if (item.tipo === "perguntaMultipla") {
+        textoFinal += (item.pergunta || "") + "\n";
+        if (Array.isArray(resp)) {
+          resp.forEach((val) => {
+            textoFinal += `( x ) ${val}\n`;
+          });
+        }
       }
+    });
   
-      // Linha com #1, #2, #3...
-      textoFinal += `#${occ}\n`;
-  
+    // linha tracejada ao final da seção
+    textoFinal += "--------------------\n";
+    return;
+  }
+
+      // Seção ESCALÁVEL
+      textoFinal += secao.titulo.toUpperCase() + "\n";
+      
+      const totalOcorrencias = getTotalOcorrencias(secaoId);
+      const mostrarNumOcorrencia = totalOcorrencias > 1;
+      
+      for (let occ = 1; occ <= totalOcorrencias; occ++) {
+      const respostasSecao =
+        ((respostas[secaoId] || {})[occ]) || {};
+    
+      if (mostrarNumOcorrencia) {
+        textoFinal += `#${occ}\n`;
+      }
+    
       (secao.itens || []).forEach((item) => {
         const resp = respostasSecao[item.idItem];
-  
+    
         if (item.tipo === "textoFixo") {
-          textoFinal += `${item.conteudo || ""}\n\n`;
+          if (item.conteudo && item.conteudo.trim() !== "") {
+            textoFinal += (item.conteudo || "") + "\n";
+          }
         } else if (item.tipo === "perguntaSubjetiva") {
-          textoFinal += `${item.pergunta || ""} ${resp || ""}\n\n`;
+          textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
         } else if (item.tipo === "perguntaCategorica") {
-            textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
-            textoFinal += gerarTextoCondicionalParaItem(
-              secaoId,
-              item,
-              resp,
-              occ
-            );
-            textoFinal += "\n";
+          textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
+          textoFinal += gerarTextoCondicionalParaItem(
+            secaoId,
+            item,
+            resp,
+            occ
+          );
         } else if (item.tipo === "perguntaMultipla") {
-          textoFinal += `${item.pergunta || ""}\n`;
+          textoFinal += (item.pergunta || "") + "\n";
           if (Array.isArray(resp)) {
-            resp.forEach((opc) => {
-              textoFinal += `( x ) ${opc}\n`;
+            resp.forEach((val) => {
+              textoFinal += `( x ) ${val}\n`;
             });
           }
-          textoFinal += "\n";
         }
       });
     }
+    
+    // linha tracejada ao final da seção
+    textoFinal += "--------------------\n";
+
   });
 
   navigator.clipboard
