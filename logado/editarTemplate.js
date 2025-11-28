@@ -530,14 +530,40 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (opcao.dinamico) btnDinamico.classList.add("ativo");
           
                 btnDinamico.addEventListener("click", async () => {
-                  const novo = !state[idx].dinamico;
-                  state[idx].dinamico = novo;
-                  if (novo && !state[idx].condicional) {
-                    state[idx].condicional = { escalavel: false, itens: [] };
+                const opc = state[idx];
+              
+                // Se já está dinâmico -> usuário quer DESATIVAR
+                if (opc.dinamico) {
+                  const temConteudo =
+                    opc.condicional &&
+                    Array.isArray(opc.condicional.itens) &&
+                    opc.condicional.itens.length > 0;
+              
+                  if (temConteudo) {
+                    const ok = confirm(
+                      "Desativar o modo dinâmico desta opção irá excluir todo o conteúdo da seção condicional associada. Deseja continuar?"
+                    );
+                    if (!ok) {
+                      return; // não muda nada
+                    }
                   }
-                  await salvarEstado();
-                  renderOpcoes();
-                });
+              
+                  // desliga e apaga tudo que era condicional
+                  opc.dinamico = false;
+                  opc.condicional = null;
+                } else {
+                  // Se estava desligado -> usuário quer ATIVAR (começa vazio)
+                  opc.dinamico = true;
+                  opc.condicional = {
+                    escalavel: false,
+                    itens: []
+                  };
+                }
+              
+                await salvarEstado();
+                renderOpcoes();
+              });
+
           
                 linhaOpt.appendChild(btnDinamico);
           
