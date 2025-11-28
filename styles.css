@@ -541,15 +541,6 @@ button:hover {
   gap: 4px;
 }
 
-/* botão de asterisco reaproveitando estilo existente */
-button.asterisco-obrigatorio {
-  min-width: 24px;
-  padding: 2px 6px;
-}
-
-
-
-
 /* Rodapé da seção condicional (botão +) */
 .secao-footer-condicional {
   display: flex;
