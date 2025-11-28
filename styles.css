@@ -453,6 +453,78 @@ button:hover {
   border-radius: 6px;
 }
 
+/* Botão "dinâmico" de cada opção categórica NOVO ------------------------------------------------------------*/
+
+/* Botão "dinâmico" de cada opção categórica */
+.botao-dinamico-opcao {
+  margin-left: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background-color: #f3f4f6; /* cinzinha neutro */
+  cursor: pointer;
+}
+
+.botao-dinamico-opcao.ativo {
+  background-color: #2e6eb5; /* azul do sistema */
+  color: #ffffff;
+  border-color: #2e6eb5;
+}
+
+/* "Seção condicional" da opção categórica */
+.secao-condicional-opcao {
+  margin-left: 16px;          /* entra um pouco à direita */
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: #eef4ff;  /* azul MUITO suave */
+  border-left: 3px solid #2e6eb5;
+}
+
+/* Cabeçalho da seção condicional */
+.header-secao-condicional {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2e6eb5;
+}
+
+/* Lista de itens dentro da seção condicional */
+.lista-itens-condicionais {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Item dentro da seção condicional */
+.item-condicional {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.item-condicional select {
+  padding: 4px;
+}
+
+.item-condicional input[type="text"] {
+  flex: 1;
+  padding: 4px 6px;
+}
+
+/* Rodapé da seção condicional (botão +) */
+.secao-footer-condicional {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+/* Botão "dinâmico" de cada opção categórica NOVO ------------------------------------------------------------*/
+
 .lista-opcoes {
   display: flex;
   flex-direction: column;
