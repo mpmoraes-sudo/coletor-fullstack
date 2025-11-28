@@ -912,45 +912,44 @@ function copiarResultado(template) {
     const tituloUpper = (secao.titulo || "").toUpperCase();
 
     if (!escalavel) {
-    // TÍTULO DA SEÇÃO
-    textoFinal += secao.titulo.toUpperCase() + "\n";
-  
-    (secao.itens || []).forEach((item) => {
-      const resp = respostasSecao[item.idItem];
-  
-      if (item.tipo === "textoFixo") {
-        if (item.conteudo && item.conteudo.trim() !== "") {
-          textoFinal += (item.conteudo || "") + "\n";
+      // TÍTULO DA SEÇÃO
+      textoFinal += secao.titulo.toUpperCase() + "\n";
+    
+      (secao.itens || []).forEach((item) => {
+        const resp = respostasSecao[item.idItem];
+    
+        if (item.tipo === "textoFixo") {
+          if (item.conteudo && item.conteudo.trim() !== "") {
+            textoFinal += (item.conteudo || "") + "\n";
+          }
+        } else if (item.tipo === "perguntaSubjetiva") {
+          textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
+        } else if (item.tipo === "perguntaCategorica") {
+          textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
+          textoFinal += gerarTextoCondicionalParaItem(
+            secaoId,
+            item,
+            resp,
+            1
+          );
+        } else if (item.tipo === "perguntaMultipla") {
+          textoFinal += (item.pergunta || "") + "\n";
+          if (Array.isArray(resp)) {
+            resp.forEach((val) => {
+              textoFinal += `( x ) ${val}\n`;
+            });
+          }
         }
-      } else if (item.tipo === "perguntaSubjetiva") {
-        textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
-      } else if (item.tipo === "perguntaCategorica") {
-        textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
-        textoFinal += gerarTextoCondicionalParaItem(
-          secaoId,
-          item,
-          resp,
-          1
-        );
-      } else if (item.tipo === "perguntaMultipla") {
-        textoFinal += (item.pergunta || "") + "\n";
-        if (Array.isArray(resp)) {
-          resp.forEach((val) => {
-            textoFinal += `( x ) ${val}\n`;
-          });
-        }
-      }
-    });
-  
-    // linha tracejada ao final da seção
-    textoFinal += "--------------------\n";
-    return;
-  }
+      });
+    
+      // linha tracejada ao final da seção
+      textoFinal += "--------------------\n";
+      return;
+    }
 
       // Seção ESCALÁVEL
       textoFinal += secao.titulo.toUpperCase() + "\n";
       
-      const totalOcorrencias = getTotalOcorrencias(secaoId);
       const mostrarNumOcorrencia = totalOcorrencias > 1;
       
       for (let occ = 1; occ <= totalOcorrencias; occ++) {
@@ -980,14 +979,14 @@ function copiarResultado(template) {
           );
         } else if (item.tipo === "perguntaMultipla") {
           textoFinal += (item.pergunta || "") + "\n";
-          if (Array.isArray(resp)) {
-            resp.forEach((val) => {
-              textoFinal += `( x ) ${val}\n`;
-            });
+            if (Array.isArray(resp)) {
+              resp.forEach((val) => {
+                textoFinal += `( x ) ${val}\n`;
+              });
+            }
           }
-        }
-      });
-    }
+        });
+      }
     
     // linha tracejada ao final da seção
     textoFinal += "--------------------\n";
