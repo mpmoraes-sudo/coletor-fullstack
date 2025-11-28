@@ -600,70 +600,37 @@ document.addEventListener("DOMContentLoaded", async () => {
                   cond.itens = Array.isArray(cond.itens) ? cond.itens : [];
             
                   cond.itens.forEach((cItem, cIdx) => {
-                  // wrapper para agrupar "linha principal" + opções (quando existirem)
+                  // wrapper para agrupar linha principal + opções (quando existirem)
                   const wrapper = document.createElement("div");
                   wrapper.className = "bloco-item-condicional";
                 
                   const row = document.createElement("div");
                   row.className = "item-condicional";
                 
-                  // === BOTÕES MOVER CIMA / BAIXO (igual itens normais) ===
-                  const btnUp = document.createElement("button");
-                  btnUp.type = "button";
-                  btnUp.textContent = "▲";
-                  btnUp.className = "botaoMover";
-                  btnUp.addEventListener("click", async () => {
-                    if (cIdx > 0) {
-                      const arr = cond.itens;
-                      [arr[cIdx], arr[cIdx - 1]] = [arr[cIdx - 1], arr[cIdx]];
-                      await salvarEstado();
-                      renderOpcoes();
-                    }
-                  });
+                  // grupos: esquerda (conteúdo) / direita (controles)
+                  const esquerda = document.createElement("div");
+                  esquerda.className = "item-condicional-esquerda";
                 
-                  const btnDown = document.createElement("button");
-                  btnDown.type = "button";
-                  btnDown.textContent = "▼";
-                  btnDown.className = "botaoMover";
-                  btnDown.addEventListener("click", async () => {
-                    const arr = cond.itens;
-                    if (cIdx < arr.length - 1) {
-                      [arr[cIdx], arr[cIdx + 1]] = [arr[cIdx + 1], arr[cIdx]];
-                      await salvarEstado();
-                      renderOpcoes();
-                    }
-                  });
+                  const direita = document.createElement("div");
+                  direita.className = "item-condicional-direita";
                 
-                  row.appendChild(btnUp);
-                  row.appendChild(btnDown);
+                  row.appendChild(esquerda);
+                  row.appendChild(direita);
                 
-                  // === NUMERAÇÃO ===
+                  // === ESQUERDA: numeração + tipo + texto/pergunta ===
+                
+                  // numeração
                   const spanNum = document.createElement("span");
                   spanNum.textContent = (cIdx + 1) + ".";
                   spanNum.style.width = "18px";
-                  row.appendChild(spanNum);
+                  esquerda.appendChild(spanNum);
                 
-                  // === ASTERISCO OBRIGATÓRIO ===
-                  const asterisco = document.createElement("span");
-                  asterisco.textContent = "*";
-                  asterisco.className = "asterisco-obrigatorio";
-                  if (cItem.obrigatorio) {
-                    asterisco.classList.add("ativo");
-                  }
-                  asterisco.style.marginRight = "6px";
-                  asterisco.addEventListener("click", async () => {
-                    cItem.obrigatorio = !cItem.obrigatorio;
-                    await salvarEstado();
-                    renderOpcoes();
-                  });
-                  row.appendChild(asterisco);
-                
-                  // === SELECT DO TIPO ===
+                  // select do tipo
                   const selectTipo = document.createElement("select");
                   const tipos = [
-                    { value: "textoFixo", label: "Texto fixo" },
-                    { value: "perguntaSubjetiva", label: "Pergunta livre" },
-                    { value: "perguntaCategorica", label: "Pergunta categórica" },
+                    { value: "textoFixo",        label: "Texto fixo" },
+                    { value: "perguntaSubjetiva",label: "Pergunta livre" },
+                    { value: "perguntaCategorica",label: "Pergunta categórica" },
                     { value: "perguntaMultipla", label: "Pergunta múltipla" }
                   ];
                   tipos.forEach((t) => {
@@ -677,6 +644,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 
                   selectTipo.addEventListener("change", async () => {
                     cItem.tipo = selectTipo.value;
+                    // limpa / cria opcoes se trocar para/desde categ/múltipla
                     if (!["perguntaCategorica", "perguntaMultipla"].includes(selectTipo.value)) {
                       delete cItem.opcoes;
                     } else if (!Array.isArray(cItem.opcoes)) {
@@ -686,9 +654,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                     renderOpcoes();
                   });
                 
-                  row.appendChild(selectTipo);
+                  esquerda.appendChild(selectTipo);
                 
-                  // === TEXTO / PERGUNTA (makeEditableSpan, igual item normal) ===
+                  // texto/pergunta (mesma lógica dos itens normais)
                   const spanTexto =
                     cItem.tipo === "textoFixo"
                       ? makeEditableSpan({
@@ -713,30 +681,78 @@ document.addEventListener("DOMContentLoaded", async () => {
                         });
                 
                   spanTexto.style.flex = "1";
-                  row.appendChild(spanTexto);
+                  esquerda.appendChild(spanTexto);
                 
-                  // === BOTÃO EXCLUIR ITEM CONDICIONAL ===
+                  // === DIREITA: asterisco, X, ▲, ▼ ===
+                
+                  // asterisco obrigatório como BOTÃO marcável
+                  const btnObrig = document.createElement("button");
+                  btnObrig.type = "button";
+                  btnObrig.textContent = "*";
+                  btnObrig.className = "botaoPadrao asterisco-obrigatorio";
+                  if (cItem.obrigatorio) {
+                    btnObrig.classList.add("ativo");
+                  }
+                  btnObrig.addEventListener("click", async () => {
+                    cItem.obrigatorio = !cItem.obrigatorio;
+                    btnObrig.classList.toggle("ativo");
+                    await salvarEstado();
+                  });
+                  direita.appendChild(btnObrig);
+                
+                  // botão excluir item condicional (com confirmação)
                   const btnDelCond = document.createElement("button");
                   btnDelCond.type = "button";
                   btnDelCond.textContent = "✕";
                   btnDelCond.className = "botaoPadrao botaoPerigo";
-                  btnDelCond.style.marginLeft = "4px";
                   btnDelCond.addEventListener("click", async () => {
+                    const ok = confirm("Tem certeza de que deseja excluir este item?");
+                    if (!ok) return;
                     cond.itens.splice(cIdx, 1);
                     await salvarEstado();
                     renderOpcoes();
                   });
-                  row.appendChild(btnDelCond);
+                  direita.appendChild(btnDelCond);
                 
-                  // Adiciona a linha principal no wrapper
+                  // mover para cima
+                  const btnUp = document.createElement("button");
+                  btnUp.type = "button";
+                  btnUp.textContent = "▲";
+                  btnUp.className = "botaoMover";
+                  btnUp.addEventListener("click", async () => {
+                    if (cIdx > 0) {
+                      const arr = cond.itens;
+                      [arr[cIdx], arr[cIdx - 1]] = [arr[cIdx - 1], arr[cIdx]];
+                      await salvarEstado();
+                      renderOpcoes();
+                    }
+                  });
+                  direita.appendChild(btnUp);
+                
+                  // mover para baixo
+                  const btnDown = document.createElement("button");
+                  btnDown.type = "button";
+                  btnDown.textContent = "▼";
+                  btnDown.className = "botaoMover";
+                  btnDown.addEventListener("click", async () => {
+                    const arr = cond.itens;
+                    if (cIdx < arr.length - 1) {
+                      [arr[cIdx], arr[cIdx + 1]] = [arr[cIdx + 1], arr[cIdx]];
+                      await salvarEstado();
+                      renderOpcoes();
+                    }
+                  });
+                  direita.appendChild(btnDown);
+                
+                  // monta a linha no wrapper
                   wrapper.appendChild(row);
                 
-                  // === SE TIPO FOR CATEGÓRICA / MÚLTIPLA, MOSTRA OPÇÕES ABAIXO ===
+                  // === SE TIPO FOR CATEGÓRICA / MÚLTIPLA, OPÇÕES ABAIXO, IGUAL SEÇÃO NORMAL ===
                   if (["perguntaCategorica", "perguntaMultipla"].includes(cItem.tipo)) {
                     const listaOpcoesCond = document.createElement("div");
                     listaOpcoesCond.className = "lista-opcoes";
                     listaOpcoesCond.style.marginTop = "6px";
-                    listaOpcoesCond.style.marginLeft = "40px"; // pequeno recuo, como nas seções normais
+                    listaOpcoesCond.style.marginLeft = "40px";
                 
                     let opState = Array.isArray(cItem.opcoes) ? [...cItem.opcoes] : [];
                 
@@ -827,14 +843,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                     }
                 
                     renderOpcoesCond();
-                
-                    // Agora as opções ficam ABAIXO da linha principal
                     wrapper.appendChild(listaOpcoesCond);
                   }
                 
-                  // Por fim, adicionamos o wrapper ao container de itens condicionais
+                  // por fim, adiciona o wrapper ao container de itens condicionais
                   listaCondItens.appendChild(wrapper);
                 });
+
 
 
             
