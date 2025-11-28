@@ -421,89 +421,425 @@ document.addEventListener("DOMContentLoaded", async () => {
               })
             );
           }
-          if (["perguntaCategorica", "perguntaMultipla"].includes(item.tipo)) {
+        ///////////////////////////////GRANDE SUBSTITUIÇÃO FINAL -------------------------------------------------------------------------------------------------  
+        // PERGUNTA CATEGÓRICA (com opções dinâmicas / seção condicional)
+          if (item.tipo === "perguntaCategorica") {
             info.appendChild(
               makeEditableSpan({
                 text: item.pergunta,
                 placeholder: "Clique para editar pergunta",
                 className: "input-pergunta",
                 onSave: (novo) =>
-                  setCampoItem(projetoId, templateId, secao.idSecao, item.idItem, "pergunta", novo)
+                  setCampoItem(
+                    projetoId,
+                    templateId,
+                    secao.idSecao,
+                    item.idItem,
+                    "pergunta",
+                    novo
+                  )
               })
             );
-
+          
             const listaOpcoes = document.createElement("div");
             listaOpcoes.className = "lista-opcoes";
             info.appendChild(listaOpcoes);
-
-            let state = Array.isArray(item.opcoes) ? [...item.opcoes] : [];
-
+          
+            // 🔹 AQUI fazemos a conversão string → objeto
+            let state = Array.isArray(item.opcoes)
+              ? item.opcoes.map((op) =>
+                  typeof op === "string"
+                    ? { texto: op, dinamico: false, condicional: null }
+                    : {
+                        texto: op.texto || "",
+                        dinamico: !!op.dinamico,
+                        condicional: op.condicional || null
+                      }
+                )
+              : [];
+          
+            async function salvarEstado() {
+              item.opcoes = state;
+              await salvarOpcoes(
+                projetoId,
+                templateId,
+                secao.idSecao,
+                item.idItem,
+                state
+              );
+            }
+          
             function renderOpcoes() {
               listaOpcoes.innerHTML = "";
-              state.forEach((opc, idx) => {
+          
+              state.forEach((opcao, idx) => {
                 const linhaOpt = document.createElement("div");
                 linhaOpt.className = "opcao-row";
-            
+          
+                // mover pra cima/baixo (igual antes)
                 const btnUpOpc = document.createElement("button");
                 btnUpOpc.textContent = "▲";
                 btnUpOpc.className = "botaoMover";
                 btnUpOpc.addEventListener("click", async () => {
                   if (idx > 0) {
                     [state[idx], state[idx - 1]] = [state[idx - 1], state[idx]];
-                    await salvarOpcoes(projetoId, templateId, secao.idSecao, item.idItem, state);
+                    await salvarEstado();
                     renderOpcoes();
                   }
                 });
-            
+          
                 const btnDownOpc = document.createElement("button");
                 btnDownOpc.textContent = "▼";
                 btnDownOpc.className = "botaoMover";
                 btnDownOpc.addEventListener("click", async () => {
                   if (idx < state.length - 1) {
                     [state[idx], state[idx + 1]] = [state[idx + 1], state[idx]];
-                    await salvarOpcoes(projetoId, templateId, secao.idSecao, item.idItem, state);
+                    await salvarEstado();
                     renderOpcoes();
                   }
                 });
-            
+          
                 linhaOpt.appendChild(btnUpOpc);
                 linhaOpt.appendChild(btnDownOpc);
-            
+          
                 const n = document.createElement("span");
                 n.textContent = idx + 1 + ".";
                 n.style.width = "18px";
-            
+                linhaOpt.appendChild(n);
+          
+                // texto da opção (usa makeEditableSpan, mas agora em opcao.texto)
                 const spanOpt = makeEditableSpan({
-                  text: opc,
+                  text: opcao.texto,
                   placeholder: "Clique para editar opção",
                   className: "input-opcao",
                   onSave: async (novo) => {
-                    state[idx] = novo;
-                    await salvarOpcoes(projetoId, templateId, secao.idSecao, item.idItem, state);
+                    state[idx].texto = novo;
+                    await salvarEstado();
                   }
                 });
                 spanOpt.style.flex = "1";
-            
-                linhaOpt.appendChild(n);
                 linhaOpt.appendChild(spanOpt);
-            
-                // 👇 NOVO: botão para excluir opção
+          
+                // 🔹 botão "dinâmico"
+                const btnDinamico = document.createElement("button");
+                btnDinamico.type = "button";
+                btnDinamico.className = "botao-dinamico-opcao";
+                btnDinamico.textContent = "dinâmico";
+                if (opcao.dinamico) btnDinamico.classList.add("ativo");
+          
+                btnDinamico.addEventListener("click", async () => {
+                  const novo = !state[idx].dinamico;
+                  state[idx].dinamico = novo;
+                  if (novo && !state[idx].condicional) {
+                    state[idx].condicional = { escalavel: false, itens: [] };
+                  }
+                  await salvarEstado();
+                  renderOpcoes();
+                });
+          
+                linhaOpt.appendChild(btnDinamico);
+          
+                // botão excluir opção (igual antes)
                 const btnExcluirOpc = document.createElement("button");
                 btnExcluirOpc.textContent = "✕";
                 btnExcluirOpc.className = "botaoPadrao botaoPerigo";
                 btnExcluirOpc.style.marginLeft = "4px";
                 btnExcluirOpc.addEventListener("click", async (e) => {
                   e.preventDefault();
-                  state.splice(idx, 1); // remove a opção desse índice
-                  await salvarOpcoes(projetoId, templateId, secao.idSecao, item.idItem, state);
+                  state.splice(idx, 1);
+                  await salvarEstado();
                   renderOpcoes();
                 });
-            
+          
                 linhaOpt.appendChild(btnExcluirOpc);
+          
+                listaOpcoes.appendChild(linhaOpt);
+          
+                // 🔹 SEÇÃO CONDICIONAL (apenas se dinâmico = true)
+                if (opcao.dinamico) {
+                  const cond = opcao.condicional || { escalavel: false, itens: [] };
+                  state[idx].condicional = cond; // garante consistência
+          
+                  const secCond = document.createElement("div");
+                  secCond.className = "secao-condicional-opcao";
+          
+                  // header da seção condicional
+                  const headerCond = document.createElement("div");
+                  headerCond.className = "header-secao-condicional";
+          
+                  const spanLabel = document.createElement("span");
+                  spanLabel.textContent = "Seção condicional para esta opção:";
+                  headerCond.appendChild(spanLabel);
+          
+                  const btnEscalavelCond = document.createElement("button");
+                  btnEscalavelCond.type = "button";
+                  btnEscalavelCond.className = "botao-escalavel";
+                  btnEscalavelCond.innerHTML = '<span class="icone-stack">☰</span> Conteúdo escalável';
+                  if (cond.escalavel) btnEscalavelCond.classList.add("ativo");
+          
+                  btnEscalavelCond.addEventListener("click", async () => {
+                    state[idx].condicional = state[idx].condicional || {
+                      escalavel: false,
+                      itens: []
+                    };
+                    state[idx].condicional.escalavel = !state[idx].condicional.escalavel;
+                    await salvarEstado();
+                    renderOpcoes();
+                  });
+          
+                  headerCond.appendChild(btnEscalavelCond);
+                  secCond.appendChild(headerCond);
+          
+                  // lista de itens condicionais
+                  const listaCondItens = document.createElement("div");
+                  listaCondItens.className = "lista-itens-condicionais";
+          
+                  (cond.itens || []).forEach((cItem, cIdx) => {
+                    const row = document.createElement("div");
+                    row.className = "item-condicional";
+          
+                    const selectTipo = document.createElement("select");
+                    ["textoFixo", "perguntaSubjetiva"].forEach((tipo) => {
+                      const opt = document.createElement("option");
+                      opt.value = tipo;
+                      opt.textContent =
+                        tipo === "textoFixo" ? "Texto fixo" : "Pergunta subjetiva";
+                      selectTipo.appendChild(opt);
+                    });
+                    selectTipo.value = cItem.tipo || "textoFixo";
+          
+                    selectTipo.addEventListener("change", async () => {
+                      state[idx].condicional.itens[cIdx].tipo = selectTipo.value;
+                      await salvarEstado();
+                      renderOpcoes();
+                    });
+          
+                    const inputTexto = document.createElement("input");
+                    inputTexto.type = "text";
+                    inputTexto.className = "input-condicional";
+                    inputTexto.value =
+                      (cItem.tipo === "textoFixo"
+                        ? cItem.conteudo
+                        : cItem.pergunta) || "";
+          
+                    inputTexto.addEventListener("input", async () => {
+                      const alvo = state[idx].condicional.itens[cIdx];
+                      if (selectTipo.value === "textoFixo") {
+                        alvo.conteudo = inputTexto.value;
+                        delete alvo.pergunta;
+                      } else {
+                        alvo.pergunta = inputTexto.value;
+                        delete alvo.conteudo;
+                      }
+                      await salvarEstado();
+                    });
+          
+                    const chkObrig = document.createElement("input");
+                    chkObrig.type = "checkbox";
+                    chkObrig.checked = !!cItem.obrigatorio;
+                    chkObrig.addEventListener("change", async () => {
+                      state[idx].condicional.itens[cIdx].obrigatorio = chkObrig.checked;
+                      await salvarEstado();
+                    });
+          
+                    const lblObrig = document.createElement("label");
+                    lblObrig.textContent = "Obrigatório";
+                    lblObrig.style.marginLeft = "4px";
+          
+                    const btnDelCond = document.createElement("button");
+                    btnDelCond.type = "button";
+                    btnDelCond.textContent = "✕";
+                    btnDelCond.className = "botaoPadrao botaoPerigo";
+                    btnDelCond.addEventListener("click", async () => {
+                      state[idx].condicional.itens.splice(cIdx, 1);
+                      await salvarEstado();
+                      renderOpcoes();
+                    });
+          
+                    row.appendChild(selectTipo);
+                    row.appendChild(inputTexto);
+                    row.appendChild(chkObrig);
+                    row.appendChild(lblObrig);
+                    row.appendChild(btnDelCond);
+          
+                    listaCondItens.appendChild(row);
+                  });
+          
+                  secCond.appendChild(listaCondItens);
+          
+                  const footerCond = document.createElement("div");
+                  footerCond.className = "secao-footer-condicional";
+          
+                  const btnAddCond = document.createElement("button");
+                  btnAddCond.type = "button";
+                  btnAddCond.className = "botao-add-item-circular";
+                  btnAddCond.textContent = "+";
+          
+                  btnAddCond.addEventListener("click", async (e) => {
+                    e.preventDefault();
+                    state[idx].condicional = state[idx].condicional || {
+                      escalavel: false,
+                      itens: []
+                    };
+                    state[idx].condicional.itens.push({
+                      idItem: "ci" + Date.now(),
+                      tipo: "textoFixo",
+                      obrigatorio: false,
+                      conteudo: ""
+                    });
+                    await salvarEstado();
+                    renderOpcoes();
+                  });
+          
+                  footerCond.appendChild(btnAddCond);
+                  secCond.appendChild(footerCond);
+          
+                  listaOpcoes.appendChild(secCond);
+                }
+              });
+          
+              const addRow = document.createElement("div");
+              const btnAdd = document.createElement("button");
+              btnAdd.textContent = "Adicionar opção";
+              btnAdd.className = "botaoPadrao";
+              btnAdd.addEventListener("click", async (e) => {
+                e.preventDefault();
+                state.push({ texto: "", dinamico: false, condicional: null });
+                await salvarEstado();
+                renderOpcoes();
+              });
+              addRow.appendChild(btnAdd);
+              listaOpcoes.appendChild(addRow);
+            }
+          
+            renderOpcoes();
+          }
+          
+          // PERGUNTA MÚLTIPLA (continua com array de strings, como antes)
+          if (item.tipo === "perguntaMultipla") {
+            info.appendChild(
+              makeEditableSpan({
+                text: item.pergunta,
+                placeholder: "Clique para editar pergunta",
+                className: "input-pergunta",
+                onSave: (novo) =>
+                  setCampoItem(
+                    projetoId,
+                    templateId,
+                    secao.idSecao,
+                    item.idItem,
+                    "pergunta",
+                    novo
+                  )
+              })
+            );
+          
+            const listaOpcoes = document.createElement("div");
+            listaOpcoes.className = "lista-opcoes";
+            info.appendChild(listaOpcoes);
+          
+            let state = Array.isArray(item.opcoes)
+                ? item.opcoes.map((op) =>
+                    typeof op === "string"
+                      ? { texto: op, dinamico: false, condicional: null }
+                      : {
+                          texto: op.texto || "",
+                          dinamico: !!op.dinamico,
+                          condicional: op.condicional || null
+                        }
+                  )
+                : [];
             
+          
+            function renderOpcoesMultipla() {
+              listaOpcoes.innerHTML = "";
+          
+              state.forEach((opc, idx) => {
+                const linhaOpt = document.createElement("div");
+                linhaOpt.className = "opcao-row";
+          
+                const btnUpOpc = document.createElement("button");
+                btnUpOpc.textContent = "▲";
+                btnUpOpc.className = "botaoMover";
+                btnUpOpc.addEventListener("click", async () => {
+                  if (idx > 0) {
+                    [state[idx], state[idx - 1]] = [state[idx - 1], state[idx]];
+                    await salvarOpcoes(
+                      projetoId,
+                      templateId,
+                      secao.idSecao,
+                      item.idItem,
+                      state
+                    );
+                    renderOpcoesMultipla();
+                  }
+                });
+          
+                const btnDownOpc = document.createElement("button");
+                btnDownOpc.textContent = "▼";
+                btnDownOpc.className = "botaoMover";
+                btnDownOpc.addEventListener("click", async () => {
+                  if (idx < state.length - 1) {
+                    [state[idx], state[idx + 1]] = [state[idx + 1], state[idx]];
+                    await salvarOpcoes(
+                      projetoId,
+                      templateId,
+                      secao.idSecao,
+                      item.idItem,
+                      state
+                    );
+                    renderOpcoesMultipla();
+                  }
+                });
+          
+                linhaOpt.appendChild(btnUpOpc);
+                linhaOpt.appendChild(btnDownOpc);
+          
+                const n = document.createElement("span");
+                n.textContent = idx + 1 + ".";
+                n.style.width = "18px";
+                linhaOpt.appendChild(n);
+          
+                const spanOpt = makeEditableSpan({
+                  text: opc,
+                  placeholder: "Clique para editar opção",
+                  className: "input-opcao",
+                  onSave: async (novo) => {
+                    state[idx] = novo;
+                    await salvarOpcoes(
+                      projetoId,
+                      templateId,
+                      secao.idSecao,
+                      item.idItem,
+                      state
+                    );
+                  }
+                });
+                spanOpt.style.flex = "1";
+                linhaOpt.appendChild(spanOpt);
+          
+                const btnExcluirOpc = document.createElement("button");
+                btnExcluirOpc.textContent = "✕";
+                btnExcluirOpc.className = "botaoPadrao botaoPerigo";
+                btnExcluirOpc.style.marginLeft = "4px";
+                btnExcluirOpc.addEventListener("click", async (e) => {
+                  e.preventDefault();
+                  state.splice(idx, 1);
+                  await salvarOpcoes(
+                    projetoId,
+                    templateId,
+                    secao.idSecao,
+                    item.idItem,
+                    state
+                  );
+                  renderOpcoesMultipla();
+                });
+          
+                linhaOpt.appendChild(btnExcluirOpc);
+          
                 listaOpcoes.appendChild(linhaOpt);
               });
-            
+          
               const addRow = document.createElement("div");
               const btnAdd = document.createElement("button");
               btnAdd.textContent = "Adicionar opção";
@@ -511,16 +847,23 @@ document.addEventListener("DOMContentLoaded", async () => {
               btnAdd.addEventListener("click", (e) => {
                 e.preventDefault();
                 state.push("");
-                // salva imediatamente as opções (incluindo a nova vazia) ------------------------------------------------------------------------------------------------------------
-                salvarOpcoes(projetoId, templateId, secao.idSecao, item.idItem, state);
-                renderOpcoes();
+                salvarOpcoes(
+                  projetoId,
+                  templateId,
+                  secao.idSecao,
+                  item.idItem,
+                  state
+                );
+                renderOpcoesMultipla();
               });
               addRow.appendChild(btnAdd);
               listaOpcoes.appendChild(addRow);
             }
-            
-            renderOpcoes();
+          
+            renderOpcoesMultipla();
           }
+
+          ///////////////////////////////GRANDE SUBSTITUIÇÃO FINAL -------------------------------------------------------------------------------------------------
 
           // botões de mover item
           const btnUpItem = document.createElement("button");
