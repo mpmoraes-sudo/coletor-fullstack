@@ -878,7 +878,8 @@ function gerarTextoCondicionalParaItem(secaoId, item, valorSelecionado, occ) {
 
 
 // Gera e copia o conteúdo final para a área de transferência
-// incluindo as repetições (#1, #2, ...) das seções escaláveis.
+// incluindo as repetições (#1, #2, ...) das seções escaláveis
+// e as seções dinâmicas indentadas.
 function copiarResultado(template) {
   if (!template) return;
 
@@ -911,13 +912,18 @@ function copiarResultado(template) {
 
     const tituloUpper = (secao.titulo || "").toUpperCase();
 
+    // ================= SEÇÃO NÃO ESCALÁVEL =================
     if (!escalavel) {
-      // TÍTULO DA SEÇÃO
-      textoFinal += secao.titulo.toUpperCase() + "\n";
-    
+      // Título da seção
+      textoFinal += tituloUpper + "\n";
+
+      // como é não escalável, sempre usamos ocorrência 1
+      const respostasSecao =
+        ((respostas[secaoId] || {})[1]) || {};
+
       (secao.itens || []).forEach((item) => {
         const resp = respostasSecao[item.idItem];
-    
+
         if (item.tipo === "textoFixo") {
           if (item.conteudo && item.conteudo.trim() !== "") {
             textoFinal += (item.conteudo || "") + "\n";
@@ -926,6 +932,7 @@ function copiarResultado(template) {
           textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
         } else if (item.tipo === "perguntaCategorica") {
           textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
+          // texto da seção dinâmica associada (indentado)
           textoFinal += gerarTextoCondicionalParaItem(
             secaoId,
             item,
@@ -941,52 +948,56 @@ function copiarResultado(template) {
           }
         }
       });
-    
+
       // linha tracejada ao final da seção
       textoFinal += "--------------------\n";
-      return;
+      return; // passa para a próxima seção
     }
 
-      // Seção ESCALÁVEL
-      textoFinal += secao.titulo.toUpperCase() + "\n";
-      
-      const mostrarNumOcorrencia = totalOcorrencias > 1;
-      
-      for (let occ = 1; occ <= totalOcorrencias; occ++) {
-        const respostasSecao =
-          ((respostas[secaoId] || {})[occ]) || {};
-      
-        if (mostrarNumOcorrencia) {
-          textoFinal += `#${occ}\n`;
+    // ================= SEÇÃO ESCALÁVEL =================
+    textoFinal += tituloUpper + "\n";
+
+    const mostrarNumOcorrencia = totalOcorrencias > 1;
+
+    for (let occ = 1; occ <= totalOcorrencias; occ++) {
+      const respostasSecao =
+        ((respostas[secaoId] || {})[occ]) || {};
+
+      // só mostra #1, #2... se tivermos mais de uma ocorrência
+      if (mostrarNumOcorrencia) {
+        textoFinal += `#${occ}\n`;
+      }
+
+      (secao.itens || []).forEach((item) => {
+        const resp = respostasSecao[item.idItem];
+
+        if (item.tipo === "textoFixo") {
+          if (item.conteudo && item.conteudo.trim() !== "") {
+            textoFinal += (item.conteudo || "") + "\n";
+          }
+        } else if (item.tipo === "perguntaSubjetiva") {
+          textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
+        } else if (item.tipo === "perguntaCategorica") {
+          textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
+          // texto da seção dinâmica associada (indentado),
+          // respeitando a ocorrência da seção principal
+          textoFinal += gerarTextoCondicionalParaItem(
+            secaoId,
+            item,
+            resp,
+            occ
+          );
+        } else if (item.tipo === "perguntaMultipla") {
+          textoFinal += (item.pergunta || "") + "\n";
+          if (Array.isArray(resp)) {
+            resp.forEach((val) => {
+              textoFinal += `( x ) ${val}\n`;
+            });
+          }
         }
-      
-        (secao.itens || []).forEach((item) => {
-          const resp = respostasSecao[item.idItem];
-      
-          if (item.tipo === "textoFixo") {
-            if (item.conteudo && item.conteudo.trim() !== "") {
-              textoFinal += (item.conteudo || "") + "\n";
-            }
-          } else if (item.tipo === "perguntaSubjetiva") {
-            textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
-          } else if (item.tipo === "perguntaCategorica") {
-            textoFinal += `${item.pergunta || ""} ${resp || ""}\n`;
-            textoFinal += gerarTextoCondicionalParaItem(
-              secaoId,
-              item,
-              resp,
-              occ
-            );
-          } else if (item.tipo === "perguntaMultipla") {
-            textoFinal += (item.pergunta || "") + "\n";
-              if (Array.isArray(resp)) {
-                resp.forEach((val) => {
-                  textoFinal += `( x ) ${val}\n`;
-                });
-              }
-            }
-          });
-        }
+      });
+    }
+
     // linha tracejada ao final da seção
     textoFinal += "--------------------\n";
   });
@@ -1004,3 +1015,4 @@ function copiarResultado(template) {
       alert("Erro ao copiar: " + err);
     });
 }
+
