@@ -462,7 +462,7 @@ button:hover {
   font-size: 12px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  background-color: #898989;
+  background-color: #dcdcdc;
   cursor: pointer;
 }
 
@@ -711,8 +711,8 @@ button:hover {
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  background-color: #898989;     /* azul bem clarinho */
-  color: #1e3a8a;
+  background-color: #dcdcdc;     /* azul bem clarinho */
+  color: #f5f6fa;
   border: none;
   border-radius: 6px;
   cursor: pointer;
