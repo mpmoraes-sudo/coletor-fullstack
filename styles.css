@@ -517,6 +517,39 @@ button:hover {
   padding: 4px 6px;
 }
 
+.bloco-item-condicional {
+  margin-bottom: 6px;
+}
+
+.item-condicional {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-condicional-esquerda {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.item-condicional-direita {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* botão de asterisco reaproveitando estilo existente */
+button.asterisco-obrigatorio {
+  min-width: 24px;
+  padding: 2px 6px;
+}
+
+
+
+
 /* Rodapé da seção condicional (botão +) */
 .secao-footer-condicional {
   display: flex;
