@@ -731,3 +731,24 @@ button:hover {
 
 
 
+/* Seção dinâmica na UTILIZAÇÃO do template */
+.secao-dinamica-uso {
+  margin-top: 8px;
+  margin-left: 32px;  /* recuo visual em relação à pergunta */
+  padding: 8px 10px;
+  border-radius: 8px;
+  background-color: #e8f2ff; /* azul bem suave */
+}
+
+.bloco-condicional-ocorrencia + .bloco-condicional-ocorrencia {
+  margin-top: 12px;
+}
+
+.subtitulo-ocorrencia-cond {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+
+
+
