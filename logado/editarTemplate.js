@@ -738,7 +738,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             listaOpcoes.className = "lista-opcoes";
             info.appendChild(listaOpcoes);
           
-            let state = Array.isArray(item.opcoes)
+            let state = Array.isArray(item.opcoes) ? [...item.opcoes] : [];
+            
                 ? item.opcoes.map((op) =>
                     typeof op === "string"
                       ? { texto: op, dinamico: false, condicional: null }
