@@ -447,16 +447,18 @@ document.addEventListener("DOMContentLoaded", async () => {
           
             // 🔹 AQUI fazemos a conversão string → objeto
             let state = Array.isArray(item.opcoes)
-              ? item.opcoes.map((op) =>
-                  typeof op === "string"
-                    ? { texto: op, dinamico: false, condicional: null }
-                    : {
-                        texto: op.texto || "",
-                        dinamico: !!op.dinamico,
-                        condicional: op.condicional || null
-                      }
-                )
+              ? item.opcoes.map(function (op) {
+                  if (typeof op === "string") {
+                    return { texto: op, dinamico: false, condicional: null };
+                  }
+                  return {
+                    texto: op.texto || "",
+                    dinamico: !!op.dinamico,
+                    condicional: op.condicional || null
+                  };
+                })
               : [];
+
           
             async function salvarEstado() {
               item.opcoes = state;
@@ -738,19 +740,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             listaOpcoes.className = "lista-opcoes";
             info.appendChild(listaOpcoes);
           
-            let state = Array.isArray(item.opcoes) ? [...item.opcoes] : [];
-            
-                ? item.opcoes.map((op) =>
-                    typeof op === "string"
-                      ? { texto: op, dinamico: false, condicional: null }
-                      : {
-                          texto: op.texto || "",
-                          dinamico: !!op.dinamico,
-                          condicional: op.condicional || null
-                        }
-                  )
-                : [];
-            
+            let state = Array.isArray(item.opcoes) ? [...item.opcoes] : [];  /////// ESSE SE MANTEM COMO ANTES JÁ QUE NÃO VAI SER DINAMICO E NAO VAI PRECISAR RECEBER OBJETOS DENTRO DELE.             
           
             function renderOpcoesMultipla() {
               listaOpcoes.innerHTML = "";
