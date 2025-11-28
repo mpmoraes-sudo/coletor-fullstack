@@ -688,7 +688,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                   // asterisco obrigatório como BOTÃO marcável
                   const btnObrig = document.createElement("button");
                   btnObrig.type = "button";
-                  btnObrig.textContent = "*";
+                  btnObrig.textContent = "✱";
                   btnObrig.className = "btn-asterisco";
                   if (cItem.obrigatorio) {
                     btnObrig.classList.add("ativo");
