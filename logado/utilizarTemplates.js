@@ -945,7 +945,7 @@ function copiarResultado(template) {
       // linha tracejada ao final da seção
       textoFinal += "--------------------\n";
       return;
-    }
+    }else{
 
       // Seção ESCALÁVEL
       textoFinal += secao.titulo.toUpperCase() + "\n";
