@@ -256,7 +256,8 @@ function montarFormulario(template) {
     blocoSecao.style.marginBottom = "24px";
 
     for (let occ = 1; occ <= totalOcorrencias; occ++) {
-      const divSecao = document.createElement("div");
+      const divSecao = document.createElement("div");   ///////////////////////////////////////NOVO 30/11
+      divSecao.classList.add("secao-uso"); 
       divSecao.style.marginBottom = "16px";
 
        if (escalavel) {
