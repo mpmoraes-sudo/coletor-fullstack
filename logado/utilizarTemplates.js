@@ -255,6 +255,13 @@ function montarFormulario(template) {
     blocoSecao.className = escalavel ? "bloco-secao escalavel" : "bloco-secao";
     blocoSecao.style.marginBottom = "24px";
 
+    if (!escalavel) {
+      const tituloPrincipal = document.createElement("h4");
+      tituloPrincipal.textContent = (secao.titulo || "").toUpperCase();
+      tituloPrincipal.className = "titulo-secao";
+      blocoSecao.appendChild(tituloPrincipal);
+    }
+    
     for (let occ = 1; occ <= totalOcorrencias; occ++) {
       const divSecao = document.createElement("div");   ///////////////////////////////////////NOVO 30/11
       divSecao.classList.add("secao-uso"); 
@@ -279,13 +286,7 @@ function montarFormulario(template) {
       subTitulo.textContent = `#${occ}`;
       subTitulo.className = "subtitulo-ocorrencia";
       divSecao.appendChild(subTitulo);
-      } else {
-      // Seção NÃO escalável: título normal como antes
-      const titulo = document.createElement("h4");
-      titulo.textContent = (secao.titulo || "").toUpperCase();
-      titulo.className = "titulo-secao";
-      divSecao.appendChild(titulo);
-      }
+      } 
   
       const respostasSecao =
         (respostas[secaoId] && respostas[secaoId][occ]) || {};
