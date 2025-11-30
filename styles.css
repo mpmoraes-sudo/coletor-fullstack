@@ -765,4 +765,30 @@ button:hover {
 }
 
 
+/* Linha que contém o botão "nova seção" entre as seções */
+.linha-criar-secao {
+  display: flex;
+  justify-content: center;  /* centraliza o botão */
+  margin: 8px 0;            /* espaço acima e abaixo entre as seções */
+}
+
+/* Estilo do botão "nova seção" intermediário */
+.btn-criar-secao-intermediario {
+  display: inline-block;
+  margin: 0;                /* deixa o espaçamento só por conta da linha */
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  color: #ffffff;           /* texto/branco, incluindo o "+" se tiver */
+  background-color: #2e6eb5;
+  border-radius: 16px;      /* se quiser um pill mais bonitinho, opcional */
+  border: none;
+  cursor: pointer;
+}
+
+.btn-criar-secao-intermediario:hover {
+  background-color: #245e9d;
+}
+
+
+
 
