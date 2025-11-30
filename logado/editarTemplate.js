@@ -1260,7 +1260,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert("Não foi possível criar seção.");
       } finally {
         btn.disabled = false;
-        btn.textContent = "➕ Criar Seção";
+        btn.textContent = "+ Nova Seção";
       }
     });
 
