@@ -1226,7 +1226,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const btnCriarAqui = document.createElement("button");
         btnCriarAqui.type = "button";
         btnCriarAqui.className = "botaoPadrao btn-criar-secao-intermediario";
-        btnCriarAqui.textContent = "➕ Criar Seção";
+        btnCriarAqui.textContent = "+ Criar Seção";
 
         btnCriarAqui.addEventListener("click", async () => {
           try {
