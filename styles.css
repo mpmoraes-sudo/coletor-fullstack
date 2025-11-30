@@ -750,5 +750,19 @@ button:hover {
 }
 
 
+/* Seção principal na tela de utilização do template  30/11 */
+.secao-uso {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: #f7f7f7;   /* cinza bem suave, estilo Google  30/11*/
+  border: 1px solid #e0e0e0;   /* borda sutil */
+}
+
+/* Garante que a seção dinâmica azul continue destacada dentro da cinza 30/11 */
+.secao-uso .secao-dinamica-uso {
+  margin-top: 8px;
+}
+
 
 
