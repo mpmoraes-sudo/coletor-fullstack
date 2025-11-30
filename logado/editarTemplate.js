@@ -374,7 +374,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         //BOTAO DE + DO FIM DA SECAO
         const btnAddItem = document.createElement("button");
         btnAddItem.className = "botao-add-item-circular";
-        btnAddItem.textContent = "+";
+        btnAddItem.textContent = "+ novo item";
         //BOTAO DE + DO FIM DA SECAO
         
         controles.appendChild(btnAddItem);
