@@ -863,12 +863,16 @@ function gerarTextoCondicionalParaItem(secaoId, item, valorSelecionado, occ) {
         texto += `${indent}${cItem.pergunta || ""} ${r || ""}\n`;
       } else if (cItem.tipo === "perguntaMultipla") {
         texto += `${indent}${cItem.pergunta || ""}\n`;
-        if (Array.isArray(r)) {
-          r.forEach((opc) => {
-            texto += `${indent}( x ) ${opc}\n`;
-          });
-        }
+      
+        const todasOpcoes = cItem.opcoes || [];
+        const selecionadas = Array.isArray(r) ? r : [];
+      
+        todasOpcoes.forEach((opc) => {
+          const marcado = selecionadas.includes(opc);
+          texto += `${indent}( ${marcado ? "x" : " "} ) ${opc}\n`;
+        });
       }
+
     });
   }
 
@@ -942,11 +946,15 @@ function copiarResultado(template) {
           );
         } else if (item.tipo === "perguntaMultipla") {
           textoFinal += (item.pergunta || "") + "\n";
-          if (Array.isArray(resp)) {
-            resp.forEach((val) => {
-              textoFinal += `( x ) ${val}\n`;
-            });
-          }
+        
+          const todasOpcoes = item.opcoes || [];
+          const selecionadas = Array.isArray(resp) ? resp : [];
+        
+          todasOpcoes.forEach((opc) => {
+            const marcado = selecionadas.includes(opc);
+            textoFinal += `( ${marcado ? "x" : " "} ) ${opc}\n`;
+          });
+        
         }
       });
 
@@ -990,11 +998,14 @@ function copiarResultado(template) {
           );
         } else if (item.tipo === "perguntaMultipla") {
           textoFinal += (item.pergunta || "") + "\n";
-          if (Array.isArray(resp)) {
-            resp.forEach((val) => {
-              textoFinal += `( x ) ${val}\n`;
-            });
-          }
+        
+          const todasOpcoes = item.opcoes || [];
+          const selecionadas = Array.isArray(resp) ? resp : [];
+        
+          todasOpcoes.forEach((opc) => {
+            const marcado = selecionadas.includes(opc);
+            textoFinal += `( ${marcado ? "x" : " "} ) ${opc}\n`;
+          });
         }
       });
     }
