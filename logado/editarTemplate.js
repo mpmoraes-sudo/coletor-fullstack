@@ -59,6 +59,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.history.back();
     });
 
+    // Centraliza o botão "Criar Seção" do topo
+    const btnCriarSecaoTopo = document.getElementById("btnCriarSecao");
+    if (btnCriarSecaoTopo) {
+      btnCriarSecaoTopo.style.display = "block";
+      btnCriarSecaoTopo.style.margin = "0 auto 16px auto"; // centralizado, com respiro embaixo
+    }
+
+    
     // ---------- Helper geral para chamar /api/projetos ----------
     async function chamarApiProjetos(payload) {
       const resp = await fetch("/api/projetos", {
@@ -146,6 +154,48 @@ document.addEventListener("DOMContentLoaded", async () => {
       return data.secao; // não é usado diretamente, mas já deixo coerente
     }
 
+    // Cria seção e move para a posição desejada (entre seções)                 //////////////// NOVO TRECHO FINAL
+    async function criarSecaoEmPosicao(indiceDestino) {
+      // 1) cria normalmente (vai pro final no banco)
+      const novaSecao = await criarSecao();
+
+      // 2) recarrega template pra saber a ordem atual
+      const { template } = await carregarProjetoETemplate();
+      const todasSecoes = template.secoes || [];
+
+      const idxNova = todasSecoes.findIndex(
+        (s) => s.idSecao === novaSecao.idSecao
+      );
+      if (idxNova === -1) {
+        // se por algum motivo não achar, só re-renderiza
+        await renderizarTudo();
+        return;
+      }
+
+      // garante que o índice de destino está dentro de 0..length-1
+      let destino = indiceDestino;
+      if (destino < 0) destino = 0;
+      if (destino >= todasSecoes.length) destino = todasSecoes.length - 1;
+
+      // 3) se já estiver na posição certa, só renderiza
+      if (idxNova === destino) {
+        await renderizarTudo();
+        return;
+      }
+
+      // 4) reordena array colocando a nova seção na posição desejada
+      const arr = [...todasSecoes];
+      const [secMovida] = arr.splice(idxNova, 1);
+      arr.splice(destino, 0, secMovida);
+
+      // 5) salva nova ordem no backend
+      await atualizarOrdemSecoes(arr);
+
+      // 6) re-renderiza
+      await renderizarTudo();
+    }
+//////////////////////////////////////////////NOVO TRECHO FINAL
+    
     async function setCampoSecao(projetoId_, templateId_, secaoId_, campo, valor) {
       await chamarApiProjetos({
         acao: "setCampoSecao",
@@ -239,7 +289,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      secoes.forEach((secao) => {
+      secoes.forEach((secao, index) => {
         const sec = document.createElement("div");
         sec.className = "secao";
         sec.dataset.idSecao = secao.idSecao;
@@ -1165,10 +1215,35 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("Erro deletar secao:", e);
           }
         });
-
-        
-
+    
         lista.appendChild(sec);
+
+
+        // Botão "Criar Seção" logo após esta seção, centralizado
+        const linhaCriar = document.createElement("div");
+        linhaCriar.className = "linha-criar-secao";
+
+        const btnCriarAqui = document.createElement("button");
+        btnCriarAqui.type = "button";
+        btnCriarAqui.className = "botaoPadrao btn-criar-secao-intermediario";
+        btnCriarAqui.textContent = "➕ Criar Seção";
+
+        btnCriarAqui.addEventListener("click", async () => {
+          try {
+            btnCriarAqui.disabled = true;
+            // cria nova seção imediatamente APÓS esta (index + 1)
+            await criarSecaoEmPosicao(index + 1);
+          } catch (e) {
+            console.error("Erro ao criar seção intermediária:", e);
+            alert("Não foi possível criar seção.");
+          } finally {
+            btnCriarAqui.disabled = false;
+          }
+        });
+
+        linhaCriar.appendChild(btnCriarAqui);
+        lista.appendChild(linhaCriar);
+
       });
     }
 
