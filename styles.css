@@ -386,9 +386,9 @@ button:hover {
 
 /* Botão circular de adicionar item */
 .botao-add-item-circular {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 25%;
   border: none;
   background-color: #2e6eb5;
   color: #fff;
