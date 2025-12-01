@@ -386,13 +386,13 @@ button:hover {
 
 /* Botão circular de adicionar item */
 .botao-add-item-circular {
-  width: 16px;
-  height: 16px;
-  border-radius: 25%;
+  width: 24px;
+  height: 24px;
+  border-radius: 37%;
   border: none;
   background-color: #2e6eb5;
   color: #fff;
-  font-size: 11px;
+  font-size: 16px;
   line-height: 1;
   display: inline-flex;
   align-items: center;
