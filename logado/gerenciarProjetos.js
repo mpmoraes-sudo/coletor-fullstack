@@ -4,13 +4,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const usuarioLogado = document.getElementById("usuarioLogado");
   const token = localStorage.getItem("tokenDeSessao");
 
-  // elementos da criação de projeto
-  const listaConvites = document.getElementById("listaConvites");
-  const inputNovoMembro = document.getElementById("inputNovoMembro");
-  const selectPermissao = document.getElementById("permissaoNovoMembro");
-  const membrosPendentes = [];
-
-
   ////////////////////////////nova func
   async function enviarConviteEmail({ emailConvidado, permissao, nomeProjeto, emailRemetente }) {
     try {
@@ -386,77 +379,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     await carregarProjetos();
   }
 
-    // ======== ADICIONAR MEMBROS ANTES DA CRIAÇÃO DO PROJETO ========         NOVA FUNC 
-  inputNovoMembro.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-
-      const email = inputNovoMembro.value.trim();
-      const permissao = selectPermissao.value;
-
-      // impede adicionar o próprio e-mail
-      if (email === emailUsuario) {
-        alert("Você já será adicionado automaticamente como editor do projeto.");
-        inputNovoMembro.value = "";
-        return;
-      }
-
-      // valida formato básico e duplicado na lista
-      if (!email.includes("@") || membrosPendentes.some(m => m.email === email)) {
-        alert("E-mail inválido ou já adicionado.");
-        inputNovoMembro.value = "";
-        return;
-      }
-
-      // agora NÃO validamos mais se o usuário existe no banco:
-      // apenas adicionamos à lista de convites
-      membrosPendentes.push({ email, permissao });
-      atualizarListaConvites();
-      inputNovoMembro.value = "";
-    }
-  });
-  ///////////////////////////////////NOVA FUNC 
-
-
-  function atualizarListaConvites() {
-    listaConvites.innerHTML = "";
-    membrosPendentes.forEach((m, idx) => {
-      const li = document.createElement("li");
-      li.textContent = `${m.email} (${m.permissao})`;
-      const bX = document.createElement("button");
-      bX.textContent = "✕";
-      bX.className = "btn-neutro";
-      bX.style.marginLeft = "6px";
-      bX.addEventListener("click", () => {
-        membrosPendentes.splice(idx, 1);
-        atualizarListaConvites();
-      });
-      li.appendChild(bX);
-      listaConvites.appendChild(li);
-    });
-  }
-
-    // ======== CRIAR PROJETO ========
+     // ======== CRIAR PROJETO ========
   document.getElementById("formNovoProjeto").addEventListener("submit", async (e) => {
     e.preventDefault();
     const nome = document.getElementById("nomeNovoProjeto").value.trim();
-    if (!nome) return alert("Informe o nome do projeto.");
+    if (!nome) {
+      alert("Informe o nome do projeto.");
+      return;
+    }
 
-    // copiamos os pendentes antes de zerar o array
-    const pendentesParaConvite = [...membrosPendentes];
-
+    // só o usuário logado entra como editor
     const membros = [
-      { email: emailUsuario, permissao: "editor", conviteAceito: true },
-      ...pendentesParaConvite.map(m => ({ ...m, conviteAceito: false }))
+      { email: emailUsuario, permissao: "editor", conviteAceito: true }
     ];
-
-    membrosPendentes.length = 0;
-    atualizarListaConvites();
 
     const r = await fetch("/api/projetos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ acao: "criar", nome, membros, emailUsuario })
+      body: JSON.stringify({ acao: "criar", nome, membros })
     });
     const data = await r.json();
     if (!r.ok || !data.success) {
@@ -464,20 +404,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // 🔔 Envia e-mails para cada convidado
-    for (const m of pendentesParaConvite) {
-      enviarConviteEmail({
-        emailConvidado: m.email,
-        permissao: m.permissao,
-        nomeProjeto: nome,
-        emailRemetente: emailUsuario
-      });
-    }
-
     e.target.reset();
     await carregarProjetos();
   });
-
-
   await carregarProjetos();
 });
