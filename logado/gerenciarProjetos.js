@@ -10,6 +10,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   const selectPermissao = document.getElementById("permissaoNovoMembro");
   const membrosPendentes = [];
 
+
+  ////////////////////////////nova func
+  async function enviarConviteEmail({ emailConvidado, permissao, nomeProjeto, emailRemetente }) {
+    try {
+      const r = await fetch("/api/emails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          acao: "conviteProjeto",
+          para: emailConvidado,
+          cc: emailRemetente,
+          nomeProjeto,
+          permissao
+        })
+      });
+
+      const data = await r.json();
+
+      if (!r.ok || !data.success) {
+        console.error(data.error || "Erro ao enviar e-mail de convite.");
+        return;
+      }
+
+      console.log("E-mail de convite enviado para:", emailConvidado);
+    } catch (err) {
+      console.error("Erro de conexão ao enviar e-mail de convite:", err);
+    }
+  }
+  ////////////////////////////////////nova func
+
+  
   if (!token) {
     window.location.href = "../index.html";
     return;
@@ -281,43 +312,57 @@ document.addEventListener("DOMContentLoaded", async () => {
       const tdAdd = document.createElement("td");
       const bAdd = document.createElement("button");
       bAdd.textContent = "Convidar";
+      // TROQUEI TODO EVENTLISTENER DO CONVIDAR PELO NOVO, ABAIXO
       bAdd.addEventListener("click", async () => {
-        const novo = (inpEmail.value || "").trim();
-        if (!novo.includes("@")) return alert("E-mail inválido.");
-        // valida usuário antes de convidar
-        const rv = await fetch("/api/usuarios", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ acao: "validarEmails", emails: [novo] })
-        });
-        const dv = await rv.json();
-        if (!dv.success || dv.encontrados.length === 0) {
-          alert("Usuário não encontrado no sistema.");
-          return;
-        }
-        const rr = await fetch("/api/projetos", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            acao: "convidar",
-            idProjeto: projeto._id,
-            emailUsuario,
-            novoMembro: { email: novo, permissao: selPerm.value }
-          })
-        });
-        const data = await rr.json();
-        if (!rr.ok || !data.success) {
-          alert(data.error || "Erro ao convidar.");
-          return;
-        }
-        projeto.membros.push({
-          email: novo,
-          permissao: selPerm.value,
-          conviteAceito: false
-        });
-        renderMembros(projeto, container, minhaPerm, minhaAceitacao);
-        inpEmail.value = "";
+      const novo = (inpEmail.value || "").trim();
+      if (!novo.includes("@")) {
+        alert("E-mail inválido.");
+        return;
+      }
+
+      // evita convidar alguém que já está no projeto
+      if (projeto.membros.some(x => x.email === novo)) {
+        alert("Este e-mail já está no projeto (convite ou membro).");
+        return;
+      }
+
+      // chama API de projetos para registrar o convite
+      const rr = await fetch("/api/projetos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          acao: "convidar",
+          idProjeto: projeto._id,
+          emailUsuario,
+          novoMembro: { email: novo, permissao: selPerm.value }
+        })
       });
+      const data = await rr.json();
+      if (!rr.ok || !data.success) {
+        alert(data.error || "Erro ao convidar.");
+        return;
+      }
+
+      // atualiza lista local
+      projeto.membros.push({
+        email: novo,
+        permissao: selPerm.value,
+        conviteAceito: false
+      });
+      renderMembros(projeto, container, minhaPerm, minhaAceitacao);
+      inpEmail.value = "";
+
+      // 🔔 Envia e-mail de convite
+      enviarConviteEmail({
+        emailConvidado: novo,
+        permissao: selPerm.value,
+        nomeProjeto: projeto.nome,
+        emailRemetente: emailUsuario
+      });
+    });
+// TROCADO ATE AQUI
+
+      
       tdAdd.appendChild(bAdd);
       trAdd.append(tdEmail, tdPerm, tdStatus, tdAdd);
       tbody.appendChild(trAdd);
@@ -341,56 +386,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     await carregarProjetos();
   }
 
-  // ======== ADICIONAR MEMBROS ANTES DA CRIAÇÃO DO PROJETO ========
-    inputNovoMembro.addEventListener("keydown", async (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-    
-        // 1️⃣ lê valores
-        const email = inputNovoMembro.value.trim();
-        const permissao = selectPermissao.value;
-    
-        // 2️⃣ impede adicionar o próprio e-mail do usuário logado
-        if (email === emailUsuario) {
-          alert("Você já será adicionado automaticamente como editor do projeto.");
-          inputNovoMembro.value = "";
-          return;
-        }
-    
-        // 3️⃣ valida formato e duplicados
-        if (!email.includes("@") || membrosPendentes.some(m => m.email === email)) {
-          alert("E-mail inválido ou já adicionado.");
-          inputNovoMembro.value = "";
-          return;
-        }
-    
-        // 4️⃣ tenta validar o e-mail no banco
-        try {
-          const resp = await fetch("/api/usuarios", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ acao: "validarEmails", emails: [email] })
-          });
-    
-          const data = await resp.json();
-    
-          if (!data.success || data.encontrados.length === 0) {
-            alert("Este e-mail não está cadastrado como usuário válido.");
-            inputNovoMembro.value = "";
-            return;
-          }
-    
-          // 5️⃣ adiciona à lista
-          membrosPendentes.push({ email, permissao });
-          atualizarListaConvites();
-          inputNovoMembro.value = "";
-    
-        } catch (err) {
-          console.error("Erro ao validar e-mail:", err);
-          alert("Erro de conexão ao verificar o e-mail.");
-        }
+    // ======== ADICIONAR MEMBROS ANTES DA CRIAÇÃO DO PROJETO ========         NOVA FUNC 
+  inputNovoMembro.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+
+      const email = inputNovoMembro.value.trim();
+      const permissao = selectPermissao.value;
+
+      // impede adicionar o próprio e-mail
+      if (email === emailUsuario) {
+        alert("Você já será adicionado automaticamente como editor do projeto.");
+        inputNovoMembro.value = "";
+        return;
       }
-    });
+
+      // valida formato básico e duplicado na lista
+      if (!email.includes("@") || membrosPendentes.some(m => m.email === email)) {
+        alert("E-mail inválido ou já adicionado.");
+        inputNovoMembro.value = "";
+        return;
+      }
+
+      // agora NÃO validamos mais se o usuário existe no banco:
+      // apenas adicionamos à lista de convites
+      membrosPendentes.push({ email, permissao });
+      atualizarListaConvites();
+      inputNovoMembro.value = "";
+    }
+  });
+  ///////////////////////////////////NOVA FUNC 
 
 
   function atualizarListaConvites() {
@@ -411,16 +436,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // ======== CRIAR PROJETO ========
+    // ======== CRIAR PROJETO ========
   document.getElementById("formNovoProjeto").addEventListener("submit", async (e) => {
     e.preventDefault();
     const nome = document.getElementById("nomeNovoProjeto").value.trim();
     if (!nome) return alert("Informe o nome do projeto.");
 
+    // copiamos os pendentes antes de zerar o array
+    const pendentesParaConvite = [...membrosPendentes];
+
     const membros = [
       { email: emailUsuario, permissao: "editor", conviteAceito: true },
-      ...membrosPendentes.map(m => ({ ...m, conviteAceito: false }))
+      ...pendentesParaConvite.map(m => ({ ...m, conviteAceito: false }))
     ];
+
     membrosPendentes.length = 0;
     atualizarListaConvites();
 
@@ -434,9 +463,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert(data.error || "Erro ao criar projeto.");
       return;
     }
+
+    // 🔔 Envia e-mails para cada convidado
+    for (const m of pendentesParaConvite) {
+      enviarConviteEmail({
+        emailConvidado: m.email,
+        permissao: m.permissao,
+        nomeProjeto: nome,
+        emailRemetente: emailUsuario
+      });
+    }
+
     e.target.reset();
     await carregarProjetos();
   });
+
 
   await carregarProjetos();
 });
