@@ -55,48 +55,24 @@ export default async function handler(req, res) {
 
     // ========== CRIAR ==========
     if (acao === "criar") {
-      if (!nome || !Array.isArray(membros) || !emailUsuario) {
-        return res.status(400).json({ error: "Nome, membros e emailUsuario são obrigatórios." });
+      // nome: string, membros: array
+      if (!nome || !Array.isArray(membros)) {
+        return res
+          .status(400)
+          .json({ error: "Nome e membros são obrigatórios." });
       }
 
       await colecao.insertOne({
         nome,
-        membros,              // { email, permissao, conviteAceito: true/false }
+        membros,              // [{ email, permissao, conviteAceito }]
         templates: [],
         criadoEm: new Date()
       });
 
-      // Enviar e-mails de convite para quem ainda não aceitou
-      const convidadosPendentes = (membros || []).filter(
-        (m) => m.conviteAceito === false
-      );
-
-      for (const m of convidadosPendentes) {
-        const permissaoLabel =
-          m.permissao === "editor"
-            ? "Editor(a)"
-            : m.permissao === "leitor"
-            ? "Leitor(a)"
-            : m.permissao;
-
-        const assunto = `Convite para participar do projeto "${nome}"`;
-
-        const mensagemHTML = `
-          <p>Olá,</p>
-          <p>Você está sendo convidado(a) para participar do projeto
-          <strong>${nome}</strong> na Ferramenta para Gestão de Templates Digitais.</p>
-          <p>Permissão sugerida: <strong>${permissaoLabel}</strong>.</p>
-          <p>Se você ainda não possui cadastro, poderá criá-lo ao acessar a ferramenta.</p>
-          <p>Atenciosamente,<br/>Ferramenta para Gestão de Templates Digitais</p>
-        `;
-
-        // não deixamos o e-mail quebrar a criação do projeto
-        enviarEmail(m.email, assunto, mensagemHTML, emailUsuario).catch((err) => {
-          console.error("Erro ao enviar e-mail de convite (criar):", err);
-        });
-      }
-
-      return res.json({ success: true, message: "Projeto criado com sucesso." });
+      return res.json({
+        success: true,
+        message: "Projeto criado com sucesso."
+      });
     }
     // NOVOOOOOOOOOO FINALEIRA
 
