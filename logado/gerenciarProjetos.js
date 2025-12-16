@@ -456,7 +456,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const r = await fetch("/api/projetos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ acao: "criar", nome, membros })
+      body: JSON.stringify({ acao: "criar", nome, membros, emailUsuario })
     });
     const data = await r.json();
     if (!r.ok || !data.success) {
