@@ -1,30 +1,48 @@
 import fetch from "node-fetch";
 
-export async function enviarEmail(destinatario, assunto, mensagemHTML) {
+export async function enviarEmail(destinatario, assunto, mensagemHTML, cc) {
   const apiKey = process.env.BREVO_API_KEY;
   const sender = process.env.SENDER_EMAIL || "no-reply@example.com";
 
   // modo simulado se não houver chave configurada
   if (!apiKey) {
     console.log(`[EMAIL MOCK] Enviaria para ${destinatario}: ${assunto}`);
+    if (cc) {
+      console.log("[EMAIL MOCK] CC:", cc);
+    }
     console.log("Conteúdo:", mensagemHTML);
     return { success: true, mock: true };
+  }
+
+  // monta payload base
+  const payload = {
+    sender: {
+      email: sender,
+      name: "Ferramenta para Gestão de Templates Digitais"
+    },
+    to: [{ email: destinatario }],
+    subject: assunto,
+    htmlContent: mensagemHTML
+  };
+
+  // se tiver CC, adiciona no payload (Brevo suporta campo cc)
+  if (cc) {
+    if (Array.isArray(cc)) {
+      payload.cc = cc.map((email) => ({ email }));
+    } else {
+      payload.cc = [{ email: cc }];
+    }
   }
 
   try {
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
-        "accept": "application/json",
+        accept: "application/json",
         "content-type": "application/json",
         "api-key": apiKey
       },
-      body: JSON.stringify({
-        sender: { email: sender, name: "Ferramenta para Gestão de Templates Digitais" },
-        to: [{ email: destinatario }],
-        subject: assunto,
-        htmlContent: mensagemHTML
-      })
+      body: JSON.stringify(payload)
     });
 
     if (!res.ok) {
