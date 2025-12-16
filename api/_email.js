@@ -14,7 +14,7 @@ export async function enviarEmail(destinatario, assunto, mensagemHTML, cc) {
     return { success: true, mock: true };
   }
 
-  // monta payload base
+  // monta payload pro Brevo
   const payload = {
     sender: {
       email: sender,
@@ -25,7 +25,7 @@ export async function enviarEmail(destinatario, assunto, mensagemHTML, cc) {
     htmlContent: mensagemHTML
   };
 
-  // se tiver CC, adiciona no payload (Brevo suporta campo cc)
+  // CC opcional
   if (cc) {
     if (Array.isArray(cc)) {
       payload.cc = cc.map((email) => ({ email }));
