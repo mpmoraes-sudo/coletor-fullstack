@@ -73,8 +73,18 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ acao: "verify", email, codigo })
       });
 
-      const data = await resp.json();
+                  const raw = await resp.text();
+                  console.log("[signup start] status:", resp.status);
+                  console.log("[signup start] body:", raw);
+                  
+                  let data;
+                  try {
+                    data = JSON.parse(raw);
+                  } catch {
+                    data = { success: false, error: raw || "Resposta não-JSON do servidor (ver console)." };
+                  }
 
+      
       if (!resp.ok || !data.success) {
         verificationMessage.textContent = data.error || "Código inválido ou expirado.";
         verificationMessage.style.color = "red";
