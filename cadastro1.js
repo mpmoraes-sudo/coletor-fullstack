@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     msg.style.color = "#333";
 
     try {
-      const resp = await fetch("/api/signup", {
+      const resp = await fetch("/api/signup.js", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ acao: "start", email })
